@@ -14,10 +14,15 @@ fn backend_add(number: i32) -> i32 {
     number + 2
 }
 
+#[tauri::command]
+fn backend_get_obj() -> String {
+    String::from("static/tooth.obj")
+}
+
 fn main() {
     let ctx = tauri::generate_context!();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![backend_add])
+        .invoke_handler(tauri::generate_handler![backend_add, backend_get_obj])
         .menu(
             tauri::Menu::os_default("Tauri Vue Template").add_submenu(Submenu::new(
                 "Help",
@@ -29,7 +34,7 @@ fn main() {
             )),
         )
         .on_menu_event(|event| {
-            let event_name = event.menu_item_id();
+            let event_name: &str = event.menu_item_id();
             match event_name {
                 "Online Documentation" => {
                     let url = "https://github.com/Uninen/tauri-vue-template".to_string();
