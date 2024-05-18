@@ -61,12 +61,18 @@ export default {
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      const ambientLight = new THREE.AmbientLight(0x444444, 0.6);
       this.scene.add(ambientLight);
-      const pointLight = new THREE.PointLight(0xffffff, 1.0)
-      pointLight.position.set(30, 30, 30);
-      pointLight.castShadow = true;
-      this.scene.add(pointLight);
+      // const pointLight = new THREE.PointLight(0xffffff, 1.0)
+      // pointLight.position.set(30, 30, 30);
+      // pointLight.castShadow = true;
+      // this.scene.add(pointLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      directionalLight.position.set(1, 1, 1);
+      this.scene.add(directionalLight);
+      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+      directionalLight2.position.set(-1, -1, -1);
+      this.scene.add(directionalLight2);
 
       // 控制器，监听鼠标事件
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
