@@ -22,7 +22,9 @@ fn backend_load_obj(file_path: String) -> Obj {
     model
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
     let ctx = tauri::generate_context!();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![backend_load_obj])
