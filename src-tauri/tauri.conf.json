@@ -1,7 +1,7 @@
 {
   "package": {
     "productName": "Smart Dental",
-    "version": "0.4.0"
+    "version": "0.0.1"
   },
   "build": {
     "distDir": "../dist",
