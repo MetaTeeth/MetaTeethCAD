@@ -1,6 +1,7 @@
 <!--  -->
 <template>
-  <div id="container"></div>
+  <div id="container">
+  </div>
 </template>
 
 <script>
@@ -55,9 +56,9 @@ export default {
       var axes = new THREE.AxesHelper(100);
       this.scene.add(axes);
 
-      this.camera.position.x = 18;
+      this.camera.position.x = 10;
       this.camera.position.y = 6;
-      this.camera.position.z = 17;
+      this.camera.position.z = 10;
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
@@ -89,7 +90,8 @@ export default {
         const filePath = event['payload'][0];
         if (filePath.endsWith('.obj')) {
           console.log(filePath);
-          this.loadOBJ(filePath);
+          // this.loadOBJ(filePath);
+          this.restoreOBJ(filePath);
         }
       });
     },
@@ -98,11 +100,12 @@ export default {
     },
     animate() { },
     loadOBJ(filePath) {
-      invoke('backend_load_obj', { filePath: filePath }).then((Obj) => {
+      invoke('backend_restore_full', { filePath: filePath }).then((Obj) => {
         // flatten position and normal
         const positions = [];
         const normals = [];
 
+        console.log(Obj);
         for (const vertex of Obj.vertices) {
           positions.push(...vertex.position);
           normals.push(...vertex.normal);
@@ -127,6 +130,44 @@ export default {
         this.scene.add(mesh);
 
         this.renderScene();
+      });
+    },
+    restoreOBJ(filePath) {
+      invoke('backend_register_obj', { filePath: filePath }).then((token) => {
+        invoke('backend_restore_preprocess', { token: token }).then(() => {
+          invoke('backend_restore_embedding', { token: token }).then(() => {
+            invoke('backend_restore_download', { token: token }).then((Obj) => {
+              const positions = [];
+              const normals = [];
+
+              console.log(Obj);
+              for (const vertex of Obj.vertices) {
+                positions.push(...vertex.position);
+                normals.push(...vertex.normal);
+              }
+
+              var geometry = new THREE.BufferGeometry();
+
+              geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+              geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+
+              geometry.setIndex(Obj.indices);
+
+              const material = new THREE.MeshLambertMaterial({
+                color: new THREE.Color("rgb(250, 250, 250)"),
+                side: THREE.DoubleSide
+              });
+
+              const mesh = new THREE.Mesh(geometry, material);
+              mesh.receiveShadow = true;
+
+              const helper = new VertexNormalsHelper(mesh);
+              this.scene.add(mesh);
+
+              this.renderScene();
+            });
+          });
+        });
       });
     }
   },
