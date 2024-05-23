@@ -1,6 +1,6 @@
 {
   "package": {
-    "productName": "Tauri Vue Template",
+    "productName": "Smart Dental",
     "version": "0.4.0"
   },
   "build": {
@@ -51,7 +51,7 @@
     },
     "windows": [
       {
-        "title": "Tauri Vue Template",
+        "title": "Smart Dental",
         "width": 800,
         "height": 600,
         "resizable": true,
