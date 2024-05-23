@@ -3597,6 +3597,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
+name = "smart_dental"
+version = "0.0.1"
+dependencies = [
+ "obj-rs",
+ "reqwest 0.12.4",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "socket2"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4058,20 +4072,6 @@ dependencies = [
  "quick-xml",
  "windows 0.56.0",
  "windows-version",
-]
-
-[[package]]
-name = "tauri_vue_template"
-version = "0.4.0"
-dependencies = [
- "obj-rs",
- "reqwest 0.12.4",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tokio",
- "url",
 ]
 
 [[package]]
