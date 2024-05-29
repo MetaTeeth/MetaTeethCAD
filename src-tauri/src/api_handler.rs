@@ -4,12 +4,15 @@
 
 use std::fs::File;
 use std::io::BufReader;
-use obj::{load_obj, Obj, Position};
+use obj::{ load_obj, Obj, Position };
 use reqwest;
 use serde::Deserialize;
 use std::io::Cursor;
 use url::Url;
 use std::borrow::Cow;
+use ply_rs::writer::Writer;
+
+use crate::converter::convert_obj_to_ply;
 
 
 #[derive(Deserialize, Debug)]
@@ -39,10 +42,9 @@ pub async fn download_file(client: &reqwest::Client, token: &String) -> Result<O
     Ok(model)
 }
 
-pub async fn upload_file(client: &reqwest::Client, file_path: &String) -> Result<String, Box<dyn std::error::Error>> {
-    let file_byte=std::fs::read(file_path).unwrap();
+pub async fn upload_file(client: &reqwest::Client, file_bytes: Vec<u8>) -> Result<String, Box<dyn std::error::Error>> {
     // 一定要有file_name方法，且参数不能为空，否则数据上传失败
-    let part=reqwest::multipart::Part::bytes(Cow::from(file_byte)).file_name("defect.obj");
+    let part=reqwest::multipart::Part::bytes(Cow::from(file_bytes)).file_name("defect.obj");
     let form = reqwest::multipart::Form::new().part("file", part);
     
     let resp = client
@@ -90,13 +92,29 @@ pub async fn backend_load_obj(file_path: String) -> Obj<Position, u32> {
         Err(why) => panic!("couldn't load {:?}", why),
         Ok(model) => model,
     };
+
+    { // test
+        let mut _ply = convert_obj_to_ply(&model).await;
+        // let mut buf = Vec::<u8>::new();
+        // let _ = Writer::new().write_ply(&mut buf, &mut _ply).unwrap();
+
+        // let client = reqwest::Client::new();
+        // let token = match upload_file(&client, buf).await {
+        //     Err(why) => panic!("Err {:?}", why),
+        //     Ok(token) => token
+        // };
+        // dbg!(token);
+    }
+
+    
     model
 }
 
 #[tauri::command]
 pub async fn backend_register_obj(file_path: String) -> String {
     let client = reqwest::Client::new();
-    let token = match upload_file(&client, &file_path).await {
+    let file_bytes=std::fs::read(file_path).unwrap();
+    let token = match upload_file(&client, file_bytes).await {
         Err(why) => panic!("Err {:?}", why),
         Ok(token) => token
     };
@@ -135,7 +153,8 @@ pub async fn backend_restore_download(token: String) -> Obj {
 pub async fn backend_restore_full(file_path: String) -> Obj {
     let client = reqwest::Client::new();
 
-    let token = match upload_file(&client, &file_path).await {
+    let file_bytes=std::fs::read(file_path).unwrap();
+    let token = match upload_file(&client, file_bytes).await {
         Err(why) => panic!("Err {:?}", why),
         Ok(token) => token
     };
