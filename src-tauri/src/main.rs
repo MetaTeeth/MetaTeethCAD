@@ -18,7 +18,8 @@ async fn main() {
             api_handler::backend_register_obj,
             api_handler::backend_restore_preprocess,
             api_handler::backend_restore_embedding,
-            api_handler::backend_restore_download
+            api_handler::backend_restore_download,
+            api_handler::backend_load_obj
         ])
         .menu(
             tauri::Menu::os_default("Smart Dental").add_submenu(Submenu::new(
@@ -34,7 +35,7 @@ async fn main() {
             let event_name: &str = event.menu_item_id();
             match event_name {
                 "Online Documentation" => {
-                    let url = "https://github.com/Uninen/tauri-vue-template".to_string();
+                    let url = "https://github.com/hx-w/tauri-practice".to_string();
                     shell::open(&event.window().shell_scope(), url, None).unwrap();
                 }
                 _ => {}

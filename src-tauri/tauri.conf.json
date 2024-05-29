@@ -52,8 +52,8 @@
     "windows": [
       {
         "title": "Smart Dental",
-        "width": 800,
-        "height": 600,
+        "width": 1200,
+        "height": 800,
         "resizable": true,
         "fullscreen": false
       }

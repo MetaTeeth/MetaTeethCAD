@@ -1,25 +1,23 @@
 <!--  -->
 <template>
+  <SubmmitForm ref="submmit_form" />
   <div id="container">
   </div>
 </template>
 
 <script>
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri"
 import { listen } from "@tauri-apps/api/event"
 
-// async function backendLoadOBJ() {
-//   return await 
-// }
+import SubmmitForm from "./SubmmitForm.vue"
+
 
 export default {
   //import引入的组件需要注入到对象中才能使用
-  components: { THREE, OBJLoader, OrbitControls, Stats },
+  components: { THREE, OrbitControls, Stats, SubmmitForm },
   props: {},
   data() {
     //这里存放数据
@@ -90,85 +88,63 @@ export default {
         const filePath = event['payload'][0];
         if (filePath.endsWith('.obj')) {
           console.log(filePath);
-          // this.loadOBJ(filePath);
-          this.restoreOBJ(filePath);
+          this.load_OBJ(filePath);
+          // this.restore_OBJ_steps(filePath);
         }
       });
     },
-    renderScene() {
+    render_scene() {
       this.renderer.render(this.scene, this.camera);
     },
     animate() { },
-    loadOBJ(filePath) {
-      invoke('backend_restore_full', { filePath: filePath }).then((Obj) => {
-        // flatten position and normal
-        const positions = [];
-        const normals = [];
-
-        console.log(Obj);
-        for (const vertex of Obj.vertices) {
-          positions.push(...vertex.position);
-          normals.push(...vertex.normal);
-        }
-
-        var geometry = new THREE.BufferGeometry();
-
-        geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-        geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
-
-        geometry.setIndex(Obj.indices);
-
-        const material = new THREE.MeshLambertMaterial({
-          color: new THREE.Color("rgb(250, 250, 250)"),
-          side: THREE.DoubleSide
-        });
-
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.receiveShadow = true;
-
-        const helper = new VertexNormalsHelper(mesh);
-        this.scene.add(mesh);
-
-        this.renderScene();
+    load_OBJ(filePath) {
+      invoke('backend_load_obj', { filePath: filePath }).then((Obj) => {
+        this._load_OBJ(Obj);
+        this.$refs.submmit_form.visible = true;
       });
     },
-    restoreOBJ(filePath) {
+    restore_OBJ_full(filePath) {
+      invoke('backend_restore_full', { filePath: filePath }).then((Obj) => {
+        this._load_OBJ(Obj);
+      });
+    },
+    restore_OBJ_steps(filePath) {
       invoke('backend_register_obj', { filePath: filePath }).then((token) => {
         invoke('backend_restore_preprocess', { token: token }).then(() => {
           invoke('backend_restore_embedding', { token: token }).then(() => {
             invoke('backend_restore_download', { token: token }).then((Obj) => {
-              const positions = [];
-              const normals = [];
-
-              console.log(Obj);
-              for (const vertex of Obj.vertices) {
-                positions.push(...vertex.position);
-                normals.push(...vertex.normal);
-              }
-
-              var geometry = new THREE.BufferGeometry();
-
-              geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-              geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
-
-              geometry.setIndex(Obj.indices);
-
-              const material = new THREE.MeshLambertMaterial({
-                color: new THREE.Color("rgb(250, 250, 250)"),
-                side: THREE.DoubleSide
-              });
-
-              const mesh = new THREE.Mesh(geometry, material);
-              mesh.receiveShadow = true;
-
-              const helper = new VertexNormalsHelper(mesh);
-              this.scene.add(mesh);
-
-              this.renderScene();
+              this._load_OBJ(Obj);
             });
           });
         });
       });
+    },
+    _load_OBJ(Obj) {
+      const positions = [];
+
+      for (const vertex of Obj.vertices) {
+        positions.push(...vertex.position);
+      }
+
+      var geometry = new THREE.BufferGeometry();
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      // geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+
+      geometry.setIndex(Obj.indices);
+      geometry.computeVertexNormals();
+
+      const material = new THREE.MeshLambertMaterial({
+        color: new THREE.Color("rgb(250, 250, 250)"),
+        side: THREE.DoubleSide
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.receiveShadow = true;
+
+      this.scene.add(mesh);
+
+      this.render_scene();
     }
   },
   //生命周期 - 创建完成（可以访问当前this实例）
@@ -177,7 +153,7 @@ export default {
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
     this.init();
-    this.renderScene();
+    this.render_scene();
     // this.loadOBJ('static/tooth.obj');
   },
   beforeCreate() { }, //生命周期 - 创建之前

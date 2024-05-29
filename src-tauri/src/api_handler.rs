@@ -1,6 +1,10 @@
+/**
+ * API DOC: https://dental.scubot.com/docs
+ */
+
 use std::fs::File;
 use std::io::BufReader;
-use obj::{load_obj, Obj};
+use obj::{load_obj, Obj, Position};
 use reqwest;
 use serde::Deserialize;
 use std::io::Cursor;
@@ -77,13 +81,12 @@ pub async fn request_api_simple(client: &reqwest::Client, api: &str, token: &Str
 }
 
 #[tauri::command]
-#[allow(dead_code)]
-pub async fn backend_load_obj(file_path: String) -> Obj {
+pub async fn backend_load_obj(file_path: String) -> Obj<Position, u32> {
     let input = BufReader::new(match File::open(&file_path) {
         Err(why) => panic!("couldn't open {:?}", why),
         Ok(file) => file,
     });
-    let model: Obj = match load_obj(input) {
+    let model: Obj<Position, u32> = match load_obj(input) {
         Err(why) => panic!("couldn't load {:?}", why),
         Ok(model) => model,
     };
