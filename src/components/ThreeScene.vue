@@ -1,8 +1,6 @@
 <!--  -->
 <template>
-  <SubmmitForm ref="submmit_form" />
-  <div id="container">
-  </div>
+  <div id="render_space" />
 </template>
 
 <script>
@@ -10,20 +8,16 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri"
-import { listen } from "@tauri-apps/api/event"
-
-import SubmmitForm from "./SubmmitForm.vue"
 
 
 export default {
-  //import引入的组件需要注入到对象中才能使用
-  components: { THREE, OrbitControls, Stats, SubmmitForm },
+  name: 'ThreeScene',
+  components: { THREE, OrbitControls, Stats },
   props: {},
   data() {
     //这里存放数据
     // !! https://stackoverflow.com/questions/65693108/threejs-component-working-in-vuejs-2-but-not-3/65732553
-    return {
-    };
+    return {};
   },
   //监听属性 类似于data概念
   computed: {},
@@ -35,20 +29,18 @@ export default {
       // 创建场景
       this.scene = new THREE.Scene();
       // 创建相机
-      this.camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.01,
-        1000
-      );
+      let width = window.innerWidth;
+      let height = window.innerHeight * 0.93;
+  
+      this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
       //创建渲染器
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setSize(width, height);
       this.renderer.setClearColor(0xffffff, 1);
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.shadowMap.enabled = true;
-      // this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      document.getElementById("container").appendChild(this.renderer.domElement);
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      document.getElementById("render_space").appendChild(this.renderer.domElement);
 
       // 创建坐标轴
       var axes = new THREE.AxesHelper(100);
@@ -79,19 +71,15 @@ export default {
         this.renderer.render(this.scene, this.camera);
       });
       window.addEventListener("resize", () => {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
+        let _subwin = document.getElementById("render_space");
+
+        // this.camera.aspect = _subwin.clientWidth / _subwin.clientHeight;
+        this.camera.aspect = window.innerWidth / (window.innerHeight * 0.93);
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        // this.renderer.setSize(_subwin.clientWidth, _subwin.clientHeight);
+        this.renderer.setSize(window.innerWidth, window.innerHeight * 0.93);
       }, false);
 
-      listen('tauri://file-drop', event => {
-        const filePath = event['payload'][0];
-        if (filePath.endsWith('.obj')) {
-          console.log(filePath);
-          this.load_OBJ(filePath);
-          // this.restore_OBJ_steps(filePath);
-        }
-      });
     },
     render_scene() {
       this.renderer.render(this.scene, this.camera);
@@ -100,7 +88,6 @@ export default {
     load_OBJ(filePath) {
       invoke('backend_load_obj', { filePath: filePath }).then((Obj) => {
         this._load_OBJ(Obj);
-        this.$refs.submmit_form.visible = true;
       });
     },
     restore_OBJ_full(filePath) {
@@ -154,7 +141,6 @@ export default {
   mounted() {
     this.init();
     this.render_scene();
-    // this.loadOBJ('static/tooth.obj');
   },
   beforeCreate() { }, //生命周期 - 创建之前
   beforeMount() { }, //生命周期 - 挂载之前

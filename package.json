@@ -19,7 +19,8 @@
     "@tauri-apps/api": "1.5.4",
     "@types/three": "^0.164.0",
     "three": "^0.164.1",
-    "vue": "3.4.26"
+    "vue": "3.4.26",
+    "vue-router": "^4.3.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "1.5.12",

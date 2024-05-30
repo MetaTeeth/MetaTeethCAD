@@ -9,6 +9,7 @@ use std::io::prelude::*;
 use std::fs::File;
 
 
+// https://github.com/Fluci/ply-rs/pull/23
 pub async fn convert_obj_to_ply(_obj: &Obj<Position, u32>) -> Ply<DefaultElement> {
     let mut _ply = Ply::<DefaultElement>::new();
     // begin header
