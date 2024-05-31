@@ -1,9 +1,15 @@
 <template>
-  <v-main class="d-flex align-center justify-center">
-    <p>Hello World</p>
-    <v-btn @click="btnToSpace()">
-      Button
-    </v-btn>
+  <v-main>
+    <v-container>
+      <v-row no-gutters>
+        <v-col align="center">
+          <v-btn @click="btnToSpace()">工作区</v-btn>
+        </v-col>
+        <v-col align="center">
+          <v-btn>设置</v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
   </v-main>
 </template>
 

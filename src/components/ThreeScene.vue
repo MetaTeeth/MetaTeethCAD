@@ -30,7 +30,7 @@ export default {
       this.scene = new THREE.Scene();
       // 创建相机
       let width = window.innerWidth;
-      let height = window.innerHeight * 0.93;
+      let height = window.innerHeight * 0.95;
   
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
       //创建渲染器
@@ -54,10 +54,6 @@ export default {
 
       const ambientLight = new THREE.AmbientLight(0x444444, 0.6);
       this.scene.add(ambientLight);
-      // const pointLight = new THREE.PointLight(0xffffff, 1.0)
-      // pointLight.position.set(30, 30, 30);
-      // pointLight.castShadow = true;
-      // this.scene.add(pointLight);
       const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
       directionalLight.position.set(1, 1, 1);
       this.scene.add(directionalLight);
@@ -73,11 +69,9 @@ export default {
       window.addEventListener("resize", () => {
         let _subwin = document.getElementById("render_space");
 
-        // this.camera.aspect = _subwin.clientWidth / _subwin.clientHeight;
-        this.camera.aspect = window.innerWidth / (window.innerHeight * 0.93);
+        this.camera.aspect = window.innerWidth / (window.innerHeight * 0.95);
         this.camera.updateProjectionMatrix();
-        // this.renderer.setSize(_subwin.clientWidth, _subwin.clientHeight);
-        this.renderer.setSize(window.innerWidth, window.innerHeight * 0.93);
+        this.renderer.setSize(window.innerWidth, window.innerHeight * 0.95);
       }, false);
 
     },
