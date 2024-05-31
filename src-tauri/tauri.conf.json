@@ -1,6 +1,6 @@
 {
   "package": {
-    "productName": "Smart Dental",
+    "productName": "BeauTee",
     "version": "0.0.2"
   },
   "build": {
@@ -51,7 +51,7 @@
     },
     "windows": [
       {
-        "title": "Smart Dental",
+        "title": "BeauTee",
         "width": 1200,
         "height": 800,
         "resizable": true,

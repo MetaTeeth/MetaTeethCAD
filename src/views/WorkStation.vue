@@ -1,5 +1,6 @@
 <template>
-  <v-main class="d-flex align-center justify-center">
+  <v-main class="d-flex align-center justify-center flex-wrap">
+    <ToolDial ref="tool_dial" />
     <ThreeScene ref="three_scene" />
     <SubmmitForm ref="submmit_form" />
   </v-main>
@@ -7,13 +8,14 @@
 
 <script>
 import { listen } from "@tauri-apps/api/event"
-import ThreeScene from '../components/ThreeScene.vue';
-import SubmmitForm from '../components/SubmmitForm.vue';
+import ThreeScene from "../components/ThreeScene.vue";
+import SubmmitForm from "../components/SubmmitForm.vue";
+import ToolDial from "../components/ToolDial.vue";
 
 
 export default {
   name: 'WorkStation',
-  components: { ThreeScene, SubmmitForm },
+  components: { ThreeScene, SubmmitForm, ToolDial },
   props: {},
   data() {
     return {};

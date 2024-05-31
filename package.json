@@ -16,6 +16,7 @@
     "check": "cd src-tauri && cargo check"
   },
   "dependencies": {
+    "@mdi/font": "^7.4.47",
     "@tauri-apps/api": "1.5.4",
     "@types/three": "^0.164.0",
     "three": "^0.164.1",

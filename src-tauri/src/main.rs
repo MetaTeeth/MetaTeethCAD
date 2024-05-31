@@ -23,7 +23,7 @@ async fn main() {
             api_handler::backend_load_obj
         ])
         .menu(
-            tauri::Menu::os_default("Smart Dental").add_submenu(Submenu::new(
+            tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(
                 "Help",
                 Menu::with_items([CustomMenuItem::new(
                     "Online Documentation",

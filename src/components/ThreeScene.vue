@@ -1,6 +1,7 @@
 <!--  -->
 <template>
-  <div id="render_space" />
+  <div id="render_space">
+  </div>
 </template>
 
 <script>
@@ -31,7 +32,7 @@ export default {
       // 创建相机
       let width = window.innerWidth;
       let height = window.innerHeight * 0.95;
-  
+
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
       //创建渲染器
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -67,8 +68,6 @@ export default {
         this.renderer.render(this.scene, this.camera);
       });
       window.addEventListener("resize", () => {
-        let _subwin = document.getElementById("render_space");
-
         this.camera.aspect = window.innerWidth / (window.innerHeight * 0.95);
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight * 0.95);
