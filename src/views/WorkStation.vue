@@ -1,6 +1,7 @@
 <template>
   <v-main class="d-flex align-center justify-center flex-wrap">
     <ToolDial ref="tool_dial" />
+    <StepLine ref="step_line" />
     <ThreeScene ref="three_scene" />
     <SubmmitForm ref="submmit_form" />
   </v-main>
@@ -11,11 +12,12 @@ import { listen } from "@tauri-apps/api/event"
 import ThreeScene from "../components/ThreeScene.vue";
 import SubmmitForm from "../components/SubmmitForm.vue";
 import ToolDial from "../components/ToolDial.vue";
+import StepLine from "../components/StepLine.vue";
 
 
 export default {
   name: 'WorkStation',
-  components: { ThreeScene, SubmmitForm, ToolDial },
+  components: { ThreeScene, SubmmitForm, ToolDial, StepLine },
   props: {},
   data() {
     return {};

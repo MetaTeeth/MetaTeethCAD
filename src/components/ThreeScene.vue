@@ -53,12 +53,12 @@ export default {
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
-      const ambientLight = new THREE.AmbientLight(0x444444, 0.6);
+      const ambientLight = new THREE.AmbientLight(0x444444, 0.8);
       this.scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
       directionalLight.position.set(1, 1, 1);
       this.scene.add(directionalLight);
-      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
       directionalLight2.position.set(-1, -1, -1);
       this.scene.add(directionalLight2);
 
@@ -109,13 +109,12 @@ export default {
       var geometry = new THREE.BufferGeometry();
 
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-      // geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
 
       geometry.setIndex(Obj.indices);
       geometry.computeVertexNormals();
 
       const material = new THREE.MeshLambertMaterial({
-        color: new THREE.Color("rgb(250, 250, 250)"),
+        color: new THREE.Color("rgb(230, 230, 230)"),
         side: THREE.DoubleSide
       });
 
