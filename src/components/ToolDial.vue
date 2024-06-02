@@ -4,9 +4,10 @@
     <v-fab class="me-4" color="surface-variant" icon="mdi-tooth-outline">
     </v-fab>
     <v-speed-dial location="right bottom" absolute transition="fade-transition" activator="parent">
-      <v-btn key="1" color="light-green-darken-3" icon="mdi-file-document-plus-outline" size="40"></v-btn>
-      <v-btn key="2" color="light-blue-darken-3" icon="mdi-file-document-arrow-right-outline" size="40"></v-btn>
-      <v-btn key="3" color="blue-grey-darken-3" icon="mdi-cog-outline" size="40"></v-btn>
+      <v-btn key="1" @click="clickConsole()" color="indigo-lighten-1" icon="mdi-console" size="40"></v-btn>
+      <v-btn key="2" color="indigo-lighten-1" icon="mdi-file-document-plus-outline" size="40"></v-btn>
+      <v-btn key="3" color="indigo-lighten-1" icon="mdi-file-document-arrow-right-outline" size="40"></v-btn>
+      <v-btn key="4" color="indigo-lighten-1" icon="mdi-cog-outline" size="40"></v-btn>
     </v-speed-dial>
   </v-container>
 </template>
@@ -22,6 +23,8 @@
 }
 </style>
 <script>
+import bus from 'vue3-eventbus';
+
 export default {
   name: "ToolDial",
   data() {
@@ -48,6 +51,9 @@ export default {
     endDrag() {
       this.dragging = false;
     },
+    clickConsole() {
+      bus.emit('click-tool-dial', { type: 'console' });
+    }
   },
   mounted() {
   },

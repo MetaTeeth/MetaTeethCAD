@@ -39,7 +39,7 @@
 
 <script>
 export default {
-  name: "SubmmitForm",
+  name: "FormStep1",
   data: () => ({
     visible: false,
   }),

@@ -102,6 +102,9 @@ importers:
       vue-tsc:
         specifier: 2.0.16
         version: 2.0.16(typescript@5.4.5)
+      vue3-eventbus:
+        specifier: ^2.0.0
+        version: 2.0.0
       vuetify:
         specifier: ^3.6.7
         version: 3.6.7(typescript@5.4.5)(vite-plugin-vuetify@2.0.3)(vue@3.4.26(typescript@5.4.5))
@@ -1550,6 +1553,9 @@ packages:
     resolution: {integrity: sha512-oGZRv2OT1lO2UF1zUcwdTb3wqUwI0kBGTgt/T7OdSj6M6N5m3o5uPf0AIW6lVxGGoiWUR7e2AwTE+xiwK8WQig==}
     engines: {node: '>=16 || 14 >=14.17'}
 
+  mitt@2.1.0:
+    resolution: {integrity: sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==}
+
   mitt@3.0.1:
     resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
 
@@ -2207,6 +2213,9 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: '*'
+
+  vue3-eventbus@2.0.0:
+    resolution: {integrity: sha512-AzgA5ShZqWy6zeuZbnwAOZDt/GHRcUwUEyNmUoOEK7MtwpjABXtyh1m6JHzcEulrRrxMgpI2qDFsjss3fYpYuw==}
 
   vue@3.4.26:
     resolution: {integrity: sha512-bUIq/p+VB+0xrJubaemrfhk1/FiW9iX+pDV+62I/XJ6EkspAO9/DXEjbDFoe8pIfOZBqfk45i9BMc41ptP/uRg==}
@@ -3817,6 +3826,8 @@ snapshots:
 
   minipass@7.1.0: {}
 
+  mitt@2.1.0: {}
+
   mitt@3.0.1: {}
 
   mlly@1.7.0:
@@ -4497,6 +4508,10 @@ snapshots:
       '@vue/language-core': 2.0.16(typescript@5.4.5)
       semver: 7.6.0
       typescript: 5.4.5
+
+  vue3-eventbus@2.0.0:
+    dependencies:
+      mitt: 2.1.0
 
   vue@3.4.26(typescript@5.4.5):
     dependencies:

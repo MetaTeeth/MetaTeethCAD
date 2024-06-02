@@ -49,6 +49,7 @@
     "vite-plugin-vuetify": "^2.0.3",
     "vitest": "1.6.0",
     "vue-tsc": "2.0.16",
+    "vue3-eventbus": "^2.0.0",
     "vuetify": "^3.6.7"
   }
 }

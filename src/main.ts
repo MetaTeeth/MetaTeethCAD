@@ -8,6 +8,7 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { md3 } from "vuetify/blueprints";
+import eventBus from "vue3-eventbus";
 
 import "./assets/main.postcss";
 
@@ -23,4 +24,4 @@ const vuetify = createVuetify({
     blueprint: md3,
 });
 
-createApp(App).use(router).use(vuetify).mount("#app");
+createApp(App).use(router).use(vuetify).use(eventBus).mount("#app");
