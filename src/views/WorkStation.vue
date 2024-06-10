@@ -21,7 +21,7 @@ export default {
   props: {},
   data() {
     return {
-      state: 0
+      state: 1
     };
   },
   computed: {},
@@ -29,12 +29,6 @@ export default {
 
   methods: {
     init() {
-      // listen('tauri://file-drop', (event) => {
-      //   const filePath = event['payload'][0];
-      //   console.log(filePath);
-      //   this.$refs.three_scene.load_OBJ(filePath);
-      //   this.$refs.submmit_form.visible = true;
-      // });
       bus.on("click-tool-dial", this.handleToolDial);
     },
     handleToolDial(param) {
@@ -45,7 +39,11 @@ export default {
         default:
           break;
       }
-    }
+      this.$refs.step_line.messages[this.state - 1]["current"] = false;
+      this.state += 1;
+      this.$refs.step_line.messages[this.state - 1]["current"] = true;
+    },
+
   },
   created() {
   },
