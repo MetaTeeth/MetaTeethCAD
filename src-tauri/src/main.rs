@@ -15,11 +15,11 @@ async fn main() {
     let ctx = tauri::generate_context!();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            api_handler::backend_restore_full,
-            api_handler::backend_register_obj,
-            api_handler::backend_restore_preprocess,
-            api_handler::backend_restore_embedding,
-            api_handler::backend_restore_download,
+            // api_handler::backend_restore_full,
+            // api_handler::backend_register_obj,
+            // api_handler::backend_restore_preprocess,
+            // api_handler::backend_restore_embedding,
+            // api_handler::backend_restore_download,
             api_handler::backend_load_obj
         ])
         .menu(

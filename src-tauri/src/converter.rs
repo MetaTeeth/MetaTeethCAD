@@ -4,9 +4,6 @@
 
 use obj::{ Obj, Position };
 use ply_rs::ply::{ Ply, DefaultElement, Encoding, ElementDef, PropertyDef, PropertyType, ScalarType, Property, Addable };
-use ply_rs::writer::Writer;
-use std::io::prelude::*;
-use std::fs::File;
 
 
 // https://github.com/Fluci/ply-rs/pull/23
@@ -56,18 +53,6 @@ pub async fn convert_obj_to_ply(_obj: &Obj<Position, u32>) -> Ply<DefaultElement
     _ply.payload.insert("face".to_string(), faces);
    
     _ply.make_consistent().unwrap();
-
-    // { // debug
-    //     // write to buffer
-    //     let mut buf = Vec::<u8>::new();
-    //     let w = Writer::new();
-    //     let written = w.write_ply(&mut buf, &mut _ply).unwrap();
-    //     println!("{} bytes written", written);
-    //     println!("buffer size: {}", buf.len());
-
-    //     let mut file = File::create("../static/HeX_upper_auto.ply").expect("Unable to create file");
-    //     file.write_all(&buf).unwrap();
-    // }
 
     _ply
 }

@@ -39,9 +39,9 @@ export default {
         default:
           break;
       }
-      this.$refs.step_line.messages[this.state - 1]["current"] = false;
-      this.state += 1;
-      this.$refs.step_line.messages[this.state - 1]["current"] = true;
+      // this.$refs.step_line.messages[this.state - 1]["current"] = false;
+      // this.state += 1;
+      // this.$refs.step_line.messages[this.state - 1]["current"] = true;
     },
 
   },

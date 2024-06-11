@@ -9,6 +9,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri"
+import bus from 'vue3-eventbus';
 
 
 export default {
@@ -78,27 +79,6 @@ export default {
       this.renderer.render(this.scene, this.camera);
     },
     animate() { },
-    load_OBJ(filePath) {
-      invoke('backend_load_obj', { filePath: filePath }).then((Obj) => {
-        this._load_OBJ(Obj);
-      });
-    },
-    restore_OBJ_full(filePath) {
-      invoke('backend_restore_full', { filePath: filePath }).then((Obj) => {
-        this._load_OBJ(Obj);
-      });
-    },
-    restore_OBJ_steps(filePath) {
-      invoke('backend_register_obj', { filePath: filePath }).then((token) => {
-        invoke('backend_restore_preprocess', { token: token }).then(() => {
-          invoke('backend_restore_embedding', { token: token }).then(() => {
-            invoke('backend_restore_download', { token: token }).then((Obj) => {
-              this._load_OBJ(Obj);
-            });
-          });
-        });
-      });
-    },
     _load_OBJ(Obj) {
       const positions = [];
 
@@ -133,6 +113,10 @@ export default {
   mounted() {
     this.init();
     this.render_scene();
+    
+    bus.on("add-obj-to-scene", (param) => {
+      this._load_OBJ(param.obj);
+    });
   },
   beforeCreate() { }, //生命周期 - 创建之前
   beforeMount() { }, //生命周期 - 挂载之前

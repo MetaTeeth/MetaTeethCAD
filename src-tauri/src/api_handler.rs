@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::BufReader;
 use obj::{ load_obj, Obj, Position };
 use reqwest;
-use serde::Deserialize;
+use serde::{ Deserialize, Serialize };
 use std::io::Cursor;
 use url::Url;
 use std::borrow::Cow;
@@ -17,6 +17,12 @@ use crate::converter::convert_obj_to_ply;
 
 #[derive(Deserialize, Debug)]
 pub struct RespToken {
+    token: String
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct OBJPack {
+    obj: Obj<Position, u32>,
     token: String
 }
 
@@ -83,7 +89,7 @@ pub async fn request_api_simple(client: &reqwest::Client, api: &str, token: &Str
 }
 
 #[tauri::command]
-pub async fn backend_load_obj(file_path: String) -> Obj<Position, u32> {
+pub async fn backend_load_obj(file_path: String) -> OBJPack {
     let input = BufReader::new(match File::open(&file_path) {
         Err(why) => panic!("couldn't open {:?}", why),
         Ok(file) => file,
@@ -93,21 +99,17 @@ pub async fn backend_load_obj(file_path: String) -> Obj<Position, u32> {
         Ok(model) => model,
     };
 
-    { // test
-        let mut _ply = convert_obj_to_ply(&model).await;
-        // let mut buf = Vec::<u8>::new();
-        // let _ = Writer::new().write_ply(&mut buf, &mut _ply).unwrap();
+    let mut _ply = convert_obj_to_ply(&model).await;
+    let mut buf = Vec::<u8>::new();
+    let _ = Writer::new().write_ply(&mut buf, &mut _ply).unwrap();
 
-        // let client = reqwest::Client::new();
-        // let token = match upload_file(&client, buf).await {
-        //     Err(why) => panic!("Err {:?}", why),
-        //     Ok(token) => token
-        // };
-        // dbg!(token);
-    }
+    let client = reqwest::Client::new();
+    let token = match upload_file(&client, buf).await {
+        Err(why) => panic!("Err {:?}", why),
+        Ok(token) => token
+    };
 
-    
-    model
+    OBJPack{ obj: model, token: token }
 }
 
 #[tauri::command]
