@@ -1,7 +1,7 @@
 {
   "package": {
-    "productName": "Smart Dental",
-    "version": "v0.0.2"
+    "productName": "BeauTee",
+    "version": "0.0.3"
   },
   "build": {
     "distDir": "../dist",
@@ -51,9 +51,9 @@
     },
     "windows": [
       {
-        "title": "Smart Dental",
-        "width": 800,
-        "height": 600,
+        "title": "BeauTee",
+        "width": 1200,
+        "height": 800,
         "resizable": true,
         "fullscreen": false
       }

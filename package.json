@@ -1,7 +1,7 @@
 {
   "name": "smart_dental",
   "private": true,
-  "version": "v0.0.2",
+  "version": "v0.0.3",
   "type": "module",
   "scripts": {
     "dev": "cross-env RUST_BACKTRACE=1 concurrently -k \"tauri dev\"",
@@ -16,10 +16,12 @@
     "check": "cd src-tauri && cargo check"
   },
   "dependencies": {
+    "@mdi/font": "^7.4.47",
     "@tauri-apps/api": "1.5.4",
     "@types/three": "^0.164.0",
     "three": "^0.164.1",
-    "vue": "3.4.26"
+    "vue": "3.4.26",
+    "vue-router": "^4.3.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "1.5.12",
@@ -47,6 +49,7 @@
     "vite-plugin-vuetify": "^2.0.3",
     "vitest": "1.6.0",
     "vue-tsc": "2.0.16",
+    "vue3-eventbus": "^2.0.0",
     "vuetify": "^3.6.7"
   }
 }

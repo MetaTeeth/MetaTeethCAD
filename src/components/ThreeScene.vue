@@ -1,31 +1,25 @@
 <!--  -->
 <template>
-  <div id="container">
+  <div id="render_space">
   </div>
 </template>
 
 <script>
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri"
-import { listen } from "@tauri-apps/api/event"
+import bus from 'vue3-eventbus';
 
-// async function backendLoadOBJ() {
-//   return await 
-// }
 
 export default {
-  //import引入的组件需要注入到对象中才能使用
-  components: { THREE, OBJLoader, OrbitControls, Stats },
+  name: 'ThreeScene',
+  components: { THREE, OrbitControls, Stats },
   props: {},
   data() {
     //这里存放数据
     // !! https://stackoverflow.com/questions/65693108/threejs-component-working-in-vuejs-2-but-not-3/65732553
-    return {
-    };
+    return {};
   },
   //监听属性 类似于data概念
   computed: {},
@@ -37,20 +31,18 @@ export default {
       // 创建场景
       this.scene = new THREE.Scene();
       // 创建相机
-      this.camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.01,
-        1000
-      );
+      let width = window.innerWidth;
+      let height = window.innerHeight * 0.95;
+
+      this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
       //创建渲染器
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setSize(width, height);
       this.renderer.setClearColor(0xffffff, 1);
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.shadowMap.enabled = true;
-      // this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      document.getElementById("container").appendChild(this.renderer.domElement);
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      document.getElementById("render_space").appendChild(this.renderer.domElement);
 
       // 创建坐标轴
       var axes = new THREE.AxesHelper(100);
@@ -62,16 +54,12 @@ export default {
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
-      const ambientLight = new THREE.AmbientLight(0x444444, 0.6);
+      const ambientLight = new THREE.AmbientLight(0x444444, 0.8);
       this.scene.add(ambientLight);
-      // const pointLight = new THREE.PointLight(0xffffff, 1.0)
-      // pointLight.position.set(30, 30, 30);
-      // pointLight.castShadow = true;
-      // this.scene.add(pointLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
       directionalLight.position.set(1, 1, 1);
       this.scene.add(directionalLight);
-      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
       directionalLight2.position.set(-1, -1, -1);
       this.scene.add(directionalLight2);
 
@@ -81,94 +69,41 @@ export default {
         this.renderer.render(this.scene, this.camera);
       });
       window.addEventListener("resize", () => {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.aspect = window.innerWidth / (window.innerHeight * 0.95);
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setSize(window.innerWidth, window.innerHeight * 0.95);
       }, false);
 
-      listen('tauri://file-drop', event => {
-        const filePath = event['payload'][0];
-        if (filePath.endsWith('.obj')) {
-          console.log(filePath);
-          // this.loadOBJ(filePath);
-          this.restoreOBJ(filePath);
-        }
-      });
     },
-    renderScene() {
+    render_scene() {
       this.renderer.render(this.scene, this.camera);
     },
     animate() { },
-    loadOBJ(filePath) {
-      invoke('backend_restore_full', { filePath: filePath }).then((Obj) => {
-        // flatten position and normal
-        const positions = [];
-        const normals = [];
+    _load_OBJ(Obj) {
+      const positions = [];
 
-        console.log(Obj);
-        for (const vertex of Obj.vertices) {
-          positions.push(...vertex.position);
-          normals.push(...vertex.normal);
-        }
+      for (const vertex of Obj.vertices) {
+        positions.push(...vertex.position);
+      }
 
-        var geometry = new THREE.BufferGeometry();
+      var geometry = new THREE.BufferGeometry();
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-        geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
 
-        geometry.setIndex(Obj.indices);
+      geometry.setIndex(Obj.indices);
+      geometry.computeVertexNormals();
 
-        const material = new THREE.MeshLambertMaterial({
-          color: new THREE.Color("rgb(250, 250, 250)"),
-          side: THREE.DoubleSide
-        });
-
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.receiveShadow = true;
-
-        const helper = new VertexNormalsHelper(mesh);
-        this.scene.add(mesh);
-
-        this.renderScene();
+      const material = new THREE.MeshLambertMaterial({
+        color: new THREE.Color("rgb(230, 230, 230)"),
+        side: THREE.DoubleSide
       });
-    },
-    restoreOBJ(filePath) {
-      invoke('backend_register_obj', { filePath: filePath }).then((token) => {
-        invoke('backend_restore_preprocess', { token: token }).then(() => {
-          invoke('backend_restore_embedding', { token: token }).then(() => {
-            invoke('backend_restore_download', { token: token }).then((Obj) => {
-              const positions = [];
-              const normals = [];
 
-              console.log(Obj);
-              for (const vertex of Obj.vertices) {
-                positions.push(...vertex.position);
-                normals.push(...vertex.normal);
-              }
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.receiveShadow = true;
 
-              var geometry = new THREE.BufferGeometry();
+      this.scene.add(mesh);
 
-              geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-              geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
-
-              geometry.setIndex(Obj.indices);
-
-              const material = new THREE.MeshLambertMaterial({
-                color: new THREE.Color("rgb(250, 250, 250)"),
-                side: THREE.DoubleSide
-              });
-
-              const mesh = new THREE.Mesh(geometry, material);
-              mesh.receiveShadow = true;
-
-              const helper = new VertexNormalsHelper(mesh);
-              this.scene.add(mesh);
-
-              this.renderScene();
-            });
-          });
-        });
-      });
+      this.render_scene();
     }
   },
   //生命周期 - 创建完成（可以访问当前this实例）
@@ -177,8 +112,11 @@ export default {
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
     this.init();
-    this.renderScene();
-    // this.loadOBJ('static/tooth.obj');
+    this.render_scene();
+    
+    bus.on("add-obj-to-scene", (param) => {
+      this._load_OBJ(param.obj);
+    });
   },
   beforeCreate() { }, //生命周期 - 创建之前
   beforeMount() { }, //生命周期 - 挂载之前
