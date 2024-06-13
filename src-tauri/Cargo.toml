@@ -1,11 +1,11 @@
 [package]
-name = "smart_dental"
+name = "BeauTee"
 version = "0.0.4"
-description = "A Tauri App"
-authors = ["Ville Säävuori"]
+description = "BeauTee Lab"
+authors = ["Team BeauTee"]
 license = "MIT"
-repository = "https://github.com/Uninen/tauri-vue-template"
-default-run = "smart_dental"
+repository = "https://github.com/hx-w/tauri-practice"
+default-run = "BeauTee"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,7 +20,7 @@ tauri = { version = "1.6.7", features = ["api-all"] }
 tokio = { version = "1.37.0", features = ["full"] }
 reqwest = { version = "0.12.4", features = ["json", "multipart"] }
 obj-rs = "*"
-ply-rs = "*"
+ply-rs = { git = "https://github.com/Matthias-Fauconneau/ply-rs" }
 url = "*"
 
 [features]
