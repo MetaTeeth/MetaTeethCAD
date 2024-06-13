@@ -1,7 +1,7 @@
 {
   "name": "smart_dental",
   "private": true,
-  "version": "v0.0.3",
+  "version": "v0.0.4",
   "type": "module",
   "scripts": {
     "dev": "cross-env RUST_BACKTRACE=1 concurrently -k \"tauri dev\"",
