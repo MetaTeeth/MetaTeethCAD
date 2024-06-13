@@ -119,6 +119,16 @@ export default {
     },
     clickConsole() {
       bus.emit('click-tool-dial', { type: 'console' });
+    },
+    markStepCurrent(step) {
+      this.messages[step - 1]["current"] = true;
+      this.messages[step - 1]["icon"] = "mdi-loading mdi-spin";
+      this.messages[step - 1]["color"] = "green";
+    },
+    markStepFinish(step) {
+      this.messages[step - 1]["current"] = false;
+      this.messages[step - 1]["color"] = "purple-darken-1";
+      this.messages[step - 1]["icon"] = "mdi-check";
     }
   }
 }

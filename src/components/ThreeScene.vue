@@ -6,10 +6,11 @@
 
 <script>
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri"
 import bus from 'vue3-eventbus';
+import { color } from "three/examples/jsm/nodes/Nodes.js";
 
 
 export default {
@@ -60,8 +61,11 @@ export default {
       directionalLight.position.set(1, 1, 1);
       this.scene.add(directionalLight);
       const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
-      directionalLight2.position.set(-1, -1, -1);
+      directionalLight2.position.set(1, -1, -1);
       this.scene.add(directionalLight2);
+      const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.6);
+      directionalLight2.position.set(-1, -1, 1);
+      this.scene.add(directionalLight3);
 
       // 控制器，监听鼠标事件
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -79,30 +83,57 @@ export default {
       this.renderer.render(this.scene, this.camera);
     },
     animate() { },
-    _load_OBJ(Obj) {
+    _load_OBJ(Obj, name) {
       const positions = [];
+      const colors = [];
 
       for (const vertex of Obj.vertices) {
         positions.push(...vertex.position);
+        colors.push(...[230 / 255, 230 / 255, 230 / 255]);
       }
 
       var geometry = new THREE.BufferGeometry();
 
+      geometry.verticesNeedUpdate = true;
+      geometry.dynamic = true;
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
 
       geometry.setIndex(Obj.indices);
       geometry.computeVertexNormals();
 
-      const material = new THREE.MeshLambertMaterial({
-        color: new THREE.Color("rgb(230, 230, 230)"),
-        side: THREE.DoubleSide
+      const material = new THREE.MeshPhongMaterial({
+        // color: new THREE.Color("rgb(230, 230, 230)"),
+        side: THREE.DoubleSide,
+        vertexColors: true,
       });
 
       const mesh = new THREE.Mesh(geometry, material);
       mesh.receiveShadow = true;
+      mesh.name = name;
 
       this.scene.add(mesh);
 
+      this.render_scene();
+    },
+    _change_mesh_colors(name, colormap) {
+      let geometry = this.scene.getObjectByName(name).geometry;
+
+      // 确保对象的geometry包含顶点信息
+      if (geometry instanceof THREE.BufferGeometry) {
+        var colorAttribute = geometry.getAttribute('color');
+
+        if (colorAttribute !== undefined && colorAttribute.count == colormap.length) {
+          for (var vind = 0; vind < colorAttribute.count; ++vind) {
+            const _color = new THREE.Color(colormap[vind]);
+            colorAttribute.setXYZ(vind, _color.r, _color.g, _color.b);
+          }
+          colorAttribute.needsUpdate = true;
+        }
+        else {
+          console.error("color change err: ", colorAttribute.count, colormap.length);
+        }
+      }
       this.render_scene();
     }
   },
@@ -113,9 +144,13 @@ export default {
   mounted() {
     this.init();
     this.render_scene();
-    
+
     bus.on("add-obj-to-scene", (param) => {
-      this._load_OBJ(param.obj);
+      this._load_OBJ(param.obj, param.name);
+    });
+
+    bus.on("change-vertex-color", (param) => {
+      this._change_mesh_colors(param.name, param.colormap);
     });
   },
   beforeCreate() { }, //生命周期 - 创建之前

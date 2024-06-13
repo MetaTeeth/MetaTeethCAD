@@ -1,42 +1,45 @@
+use obj::{load_obj, Obj, Position};
+use ply_rs::writer::Writer;
+use reqwest;
+use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
+use std::collections::HashMap;
 /**
  * API DOC: https://dental.scubot.com/docs
  */
-
 use std::fs::File;
 use std::io::BufReader;
-use obj::{ load_obj, Obj, Position };
-use reqwest;
-use serde::{ Deserialize, Serialize };
 use std::io::Cursor;
 use url::Url;
-use std::borrow::Cow;
-use ply_rs::writer::Writer;
 
 use crate::converter::convert_obj_to_ply;
 
-
 #[derive(Deserialize, Debug)]
 pub struct RespToken {
-    token: String
+    token: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct OBJPack {
     obj: Obj<Position, u32>,
-    token: String
+    token: String,
 }
 
-pub async fn download_file(client: &reqwest::Client, token: &String) -> Result<Obj, Box<dyn std::error::Error>> {
+pub async fn download_file(
+    client: &reqwest::Client,
+    token: &String,
+) -> Result<Obj, Box<dyn std::error::Error>> {
     let url = Url::parse_with_params(
-        "https://dental.scubot.com/dental/restoration/extract",
-        &[("token", &token)]
+        "https://dental.scubot.com/restoration/extract",
+        &[("token", &token)],
     )?;
-    let resp = client.post(url)
-    .basic_auth("GET MY TOKEN", Some("b19aa580-90e1-4f32-b065-e5f4c1b9c2cd"))
-    .send()
-    .await?;
+    let resp = client
+        .post(url)
+        .basic_auth("GET MY TOKEN", Some("b19aa580-90e1-4f32-b065-e5f4c1b9c2cd"))
+        .send()
+        .await?;
 
-    let content =  Cursor::new(resp.text().await?);
+    let content = Cursor::new(resp.text().await?);
 
     let buf_read = std::io::BufReader::new(content);
 
@@ -48,11 +51,14 @@ pub async fn download_file(client: &reqwest::Client, token: &String) -> Result<O
     Ok(model)
 }
 
-pub async fn upload_file(client: &reqwest::Client, file_bytes: Vec<u8>) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn upload_file(
+    client: &reqwest::Client,
+    file_bytes: Vec<u8>,
+) -> Result<String, Box<dyn std::error::Error>> {
     // 一定要有file_name方法，且参数不能为空，否则数据上传失败
-    let part=reqwest::multipart::Part::bytes(Cow::from(file_bytes)).file_name("defect.obj");
+    let part = reqwest::multipart::Part::bytes(Cow::from(file_bytes)).file_name("defect.obj");
     let form = reqwest::multipart::Form::new().part("file", part);
-    
+
     let resp = client
         .post("https://dental.scubot.com/register")
         .basic_auth("GET MY TOKEN", Some("b19aa580-90e1-4f32-b065-e5f4c1b9c2cd"))
@@ -69,23 +75,56 @@ pub async fn upload_file(client: &reqwest::Client, file_bytes: Vec<u8>) -> Resul
     Ok(resp_content.token)
 }
 
-pub async fn request_api_simple(client: &reqwest::Client, api: &str, token: &String) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn request_api_simple(
+    client: &reqwest::Client,
+    api: &str,
+    token: &String,
+) -> Result<String, Box<dyn std::error::Error>> {
     let url = Url::parse_with_params(
-        format!("{}{}", String::from("https://dental.scubot.com"), String::from(api)).as_str(), 
-        &[("token", &token)]
+        format!(
+            "{}{}",
+            String::from("https://dental.scubot.com"),
+            String::from(api)
+        )
+        .as_str(),
+        &[("token", &token)],
     )?;
 
-    let resp = client.post(url)
-    .header("Content-Type", "application/json")
-    .basic_auth("GET MY TOKEN", Some("b19aa580-90e1-4f32-b065-e5f4c1b9c2cd"))
-    .send()
-    .await?;
+    let resp = client
+        .post(url)
+        .header("Content-Type", "application/json")
+        .basic_auth("GET MY TOKEN", Some("b19aa580-90e1-4f32-b065-e5f4c1b9c2cd"))
+        .send()
+        .await?;
 
     if resp.status() != 200 {
         return Err(resp.text().await?.into());
     }
 
     Ok(String::from("Ok"))
+}
+
+#[tauri::command]
+pub async fn backend_segment_jaw(token: String, jawkind: String) -> HashMap<String, Vec<u32>> {
+    let client = reqwest::Client::new();
+    let url = Url::parse_with_params(
+        "https://dental.scubot.com/segmentation",
+        &[("token", &token), ("jaw_kind", &jawkind)],
+    )
+    .unwrap();
+
+    let labels = client
+        .post(url)
+        .header("Content-Type", "application/json")
+        .basic_auth("GET MY TOKEN", Some("b19aa580-90e1-4f32-b065-e5f4c1b9c2cd"))
+        .send()
+        .await
+        .unwrap()
+        .json::<HashMap<String, Vec<u32>>>()
+        .await
+        .unwrap();
+
+    labels
 }
 
 #[tauri::command]
@@ -106,19 +145,22 @@ pub async fn backend_load_obj(file_path: String) -> OBJPack {
     let client = reqwest::Client::new();
     let token = match upload_file(&client, buf).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(token) => token
+        Ok(token) => token,
     };
 
-    OBJPack{ obj: model, token: token }
+    OBJPack {
+        obj: model,
+        token: token,
+    }
 }
 
 #[tauri::command]
 pub async fn backend_register_obj(file_path: String) -> String {
     let client = reqwest::Client::new();
-    let file_bytes=std::fs::read(file_path).unwrap();
+    let file_bytes = std::fs::read(file_path).unwrap();
     let token = match upload_file(&client, file_bytes).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(token) => token
+        Ok(token) => token,
     };
     token
 }
@@ -126,18 +168,18 @@ pub async fn backend_register_obj(file_path: String) -> String {
 #[tauri::command]
 pub async fn backend_restore_preprocess(token: String) {
     let client = reqwest::Client::new();
-    _ = match request_api_simple(&client, "/dental/restoration/preprocess", &token).await {
+    _ = match request_api_simple(&client, "/restoration/preprocess", &token).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg, 
+        Ok(msg) => msg,
     };
 }
 
 #[tauri::command]
 pub async fn backend_restore_embedding(token: String) {
     let client = reqwest::Client::new();
-    _ = match request_api_simple(&client, "/dental/restoration/embedding", &token).await {
+    _ = match request_api_simple(&client, "/restoration/embedding", &token).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg, 
+        Ok(msg) => msg,
     };
 }
 
@@ -146,7 +188,7 @@ pub async fn backend_restore_download(token: String) -> Obj {
     let client = reqwest::Client::new();
     let model = match download_file(&client, &token).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(model) => model
+        Ok(model) => model,
     };
     model
 }
@@ -155,29 +197,29 @@ pub async fn backend_restore_download(token: String) -> Obj {
 pub async fn backend_restore_full(file_path: String) -> Obj {
     let client = reqwest::Client::new();
 
-    let file_bytes=std::fs::read(file_path).unwrap();
+    let file_bytes = std::fs::read(file_path).unwrap();
     let token = match upload_file(&client, file_bytes).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(token) => token
+        Ok(token) => token,
     };
 
     println!("Token => {}", token);
 
-    _ = match request_api_simple(&client, "/dental/restoration/preprocess", &token).await {
+    _ = match request_api_simple(&client, "/restoration/preprocess", &token).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg, 
+        Ok(msg) => msg,
     };
     println!("Preprocess done.");
-    
-    _ = match request_api_simple(&client, "/dental/restoration/embedding", &token).await {
+
+    _ = match request_api_simple(&client, "/restoration/embedding", &token).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg, 
+        Ok(msg) => msg,
     };
     println!("Emebedding done.");
-    
+
     let model = match download_file(&client, &token).await {
         Err(why) => panic!("Err {:?}", why),
-        Ok(model) => model
+        Ok(model) => model,
     };
 
     model

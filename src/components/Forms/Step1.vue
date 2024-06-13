@@ -105,12 +105,14 @@ export default {
       }
     },
     confirm() {
-      this.objs.forEach((obj) => {
-        if (obj != null) {
-          bus.emit('add-obj-to-scene', { obj: obj });
-        }
-      })
+      for (var ind = 0; ind < 4; ++ind) {
+        if (this.objs[ind] != null && this.tokens[ind].length > 10) {
+          bus.emit('add-obj-to-scene', { obj: this.objs[ind], name: this.tokens[ind] });
+        } 
+      }
       this.visible = false;
+
+      bus.emit('go-to-step', { step: 2 });
     },
   }
 }
