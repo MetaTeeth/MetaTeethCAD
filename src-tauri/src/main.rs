@@ -20,7 +20,8 @@ async fn main() {
             // api_handler::backend_restore_preprocess,
             // api_handler::backend_restore_embedding,
             // api_handler::backend_restore_download,
-            api_handler::backend_load_obj
+            api_handler::backend_load_obj,
+            api_handler::backend_segment_jaw
         ])
         .menu(
             tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(
