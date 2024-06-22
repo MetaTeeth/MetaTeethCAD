@@ -1,13 +1,45 @@
 <template>
-  <v-container class="floating-tool" @mousedown="startDrag" @mousemove="drag" @mouseup="endDrag" @mouseleave="endDrag"
-    :style="{ left: currentX + 'px', top: currentY + 'px' }">
+  <v-container
+    class="floating-tool"
+    @mousedown="startDrag"
+    @mousemove="drag"
+    @mouseup="endDrag"
+    @mouseleave="endDrag"
+    :style="{ left: currentX + 'px', top: currentY + 'px' }"
+  >
     <v-fab class="me-4" color="surface-variant" icon="mdi-tooth-outline">
     </v-fab>
-    <v-speed-dial location="right bottom" absolute transition="fade-transition" activator="parent">
-      <v-btn key="1" @click="clickConsole()" color="indigo-lighten-1" icon="mdi-console" size="40"></v-btn>
-      <v-btn key="2" color="indigo-lighten-1" icon="mdi-file-document-plus-outline" size="40"></v-btn>
-      <v-btn key="3" color="indigo-lighten-1" icon="mdi-file-document-arrow-right-outline" size="40"></v-btn>
-      <v-btn key="4" color="indigo-lighten-1" icon="mdi-cog-outline" size="40"></v-btn>
+    <v-speed-dial
+      location="right bottom"
+      absolute
+      transition="fade-transition"
+      activator="parent"
+    >
+      <v-btn
+        key="1"
+        @click="clickConsole()"
+        color="indigo-lighten-1"
+        icon="mdi-console"
+        size="40"
+      ></v-btn>
+      <v-btn
+        key="2"
+        color="indigo-lighten-1"
+        icon="mdi-file-document-plus-outline"
+        size="40"
+      ></v-btn>
+      <v-btn
+        key="3"
+        color="indigo-lighten-1"
+        icon="mdi-file-document-arrow-right-outline"
+        size="40"
+      ></v-btn>
+      <v-btn
+        key="4"
+        color="indigo-lighten-1"
+        icon="mdi-cog-outline"
+        size="40"
+      ></v-btn>
     </v-speed-dial>
   </v-container>
 </template>
@@ -23,7 +55,7 @@
 }
 </style>
 <script>
-import bus from 'vue3-eventbus';
+import bus from "vue3-eventbus";
 
 export default {
   name: "ToolDial",
@@ -33,7 +65,7 @@ export default {
       startY: 100,
       currentX: 100,
       currentY: 100,
-      dragging: false
+      dragging: false,
     };
   },
   methods: {
@@ -52,10 +84,9 @@ export default {
       this.dragging = false;
     },
     clickConsole() {
-      bus.emit('click-tool-dial', { type: 'console' });
-    }
+      bus.emit("click-tool-dial", { type: "console" });
+    },
   },
-  mounted() {
-  },
-}
+  mounted() {},
+};
 </script>

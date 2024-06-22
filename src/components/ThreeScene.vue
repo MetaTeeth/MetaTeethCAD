@@ -1,20 +1,18 @@
 <!--  -->
 <template>
-  <div id="render_space">
-  </div>
+  <div id="render_space"></div>
 </template>
 
 <script>
 import * as THREE from "three";
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Stats from "stats-js";
-import { invoke } from "@tauri-apps/api/tauri"
-import bus from 'vue3-eventbus';
+import { invoke } from "@tauri-apps/api/tauri";
+import bus from "vue3-eventbus";
 import { color } from "three/examples/jsm/nodes/Nodes.js";
 
-
 export default {
-  name: 'ThreeScene',
+  name: "ThreeScene",
   components: { THREE, OrbitControls, Stats },
   props: {},
   data() {
@@ -43,7 +41,9 @@ export default {
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      document.getElementById("render_space").appendChild(this.renderer.domElement);
+      document
+        .getElementById("render_space")
+        .appendChild(this.renderer.domElement);
 
       // 创建坐标轴
       var axes = new THREE.AxesHelper(100);
@@ -72,17 +72,20 @@ export default {
       this.controls.addEventListener("change", () => {
         this.renderer.render(this.scene, this.camera);
       });
-      window.addEventListener("resize", () => {
-        this.camera.aspect = window.innerWidth / (window.innerHeight * 0.95);
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight * 0.95);
-      }, false);
-
+      window.addEventListener(
+        "resize",
+        () => {
+          this.camera.aspect = window.innerWidth / (window.innerHeight * 0.95);
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(window.innerWidth, window.innerHeight * 0.95);
+        },
+        false
+      );
     },
     render_scene() {
       this.renderer.render(this.scene, this.camera);
     },
-    animate() { },
+    animate() {},
     _load_OBJ(Obj, name) {
       const positions = [];
       const colors = [];
@@ -96,8 +99,14 @@ export default {
 
       geometry.verticesNeedUpdate = true;
       geometry.dynamic = true;
-      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array(positions), 3)
+      );
+      geometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(new Float32Array(colors), 3)
+      );
 
       geometry.setIndex(Obj.indices);
       geometry.computeVertexNormals();
@@ -121,25 +130,30 @@ export default {
 
       // 确保对象的geometry包含顶点信息
       if (geometry instanceof THREE.BufferGeometry) {
-        var colorAttribute = geometry.getAttribute('color');
+        var colorAttribute = geometry.getAttribute("color");
 
-        if (colorAttribute !== undefined && colorAttribute.count == colormap.length) {
+        if (
+          colorAttribute !== undefined &&
+          colorAttribute.count == colormap.length
+        ) {
           for (var vind = 0; vind < colorAttribute.count; ++vind) {
             const _color = new THREE.Color(colormap[vind]);
             colorAttribute.setXYZ(vind, _color.r, _color.g, _color.b);
           }
           colorAttribute.needsUpdate = true;
-        }
-        else {
-          console.error("color change err: ", colorAttribute.count, colormap.length);
+        } else {
+          console.error(
+            "color change err: ",
+            colorAttribute.count,
+            colormap.length
+          );
         }
       }
       this.render_scene();
-    }
+    },
   },
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {
-  },
+  created() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
     this.init();
@@ -153,13 +167,13 @@ export default {
       this._change_mesh_colors(param.name, param.colormap);
     });
   },
-  beforeCreate() { }, //生命周期 - 创建之前
-  beforeMount() { }, //生命周期 - 挂载之前
-  beforeUpdate() { }, //生命周期 - 更新之前
-  updated() { }, //生命周期 - 更新之后
-  beforeDestroy() { }, //生命周期 - 销毁之前
-  destroyed() { }, //生命周期 - 销毁完成
-  activated() { }, //如果页面有keep-alive缓存功能，这个函数会触发
+  beforeCreate() {}, //生命周期 - 创建之前
+  beforeMount() {}, //生命周期 - 挂载之前
+  beforeUpdate() {}, //生命周期 - 更新之前
+  updated() {}, //生命周期 - 更新之后
+  beforeDestroy() {}, //生命周期 - 销毁之前
+  destroyed() {}, //生命周期 - 销毁完成
+  activated() {}, //如果页面有keep-alive缓存功能，这个函数会触发
 };
 </script>
 <style scoped></style>

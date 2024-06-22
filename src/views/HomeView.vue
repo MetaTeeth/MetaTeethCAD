@@ -18,7 +18,7 @@ export default {
   methods: {
     btnToSpace() {
       this.$router.push("/space");
-    }
-  }
-}
+    },
+  },
+};
 </script>
