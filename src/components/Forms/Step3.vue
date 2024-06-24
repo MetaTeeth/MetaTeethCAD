@@ -55,7 +55,17 @@
                   label="参考对称牙齿形态"
                 ></v-checkbox>
                 <v-switch
+                  v-if="switchValid"
                   v-model="switchOn"
+                  color="success"
+                  label="标记为残缺牙齿"
+                  hide-details
+                  density="comfortable"
+                ></v-switch>
+                <v-switch
+                  v-else
+                  v-model="switchOn"
+                  disabled
                   color="success"
                   label="标记为残缺牙齿"
                   hide-details
@@ -79,6 +89,8 @@
 
 <script>
 import FDIViewer from "../FDIViewer.vue"; // 假设你已经创建了这个组件
+import { invoke } from "@tauri-apps/api/tauri";
+import bus from "vue3-eventbus";
 
 export default {
   name: "FormStep3",
@@ -87,10 +99,12 @@ export default {
   },
   data() {
     return {
-      visible: true,
+      visible: false,
+      scene_init: false,
       switchOn: false,
-      selectedTooth: 11,
+      selectedTooth: null,
       pickedTooth: [], // [{ id, params }]
+      teethValid: new Set(),
       teethKinds: [
         {
           order: 1,
@@ -151,16 +165,33 @@ export default {
         ckbx_cache: false,
         ckbx_oppo: false,
       },
+      switchValid: false,
     };
+  },
+  mounted() {
+    bus.on("set-tooth-segment-ready", (param) => {
+      this.teethValid.add(param.label);
+    });
   },
   methods: {
     selectTooth(toothId) {
+      if (!this.scene_init) {
+        this.scene_init = true;
+        bus.emit("set-preview-on", {});
+      }
+
       this.selectedTooth = toothId;
+      this.switchValid = this.teethValid.has(`${toothId}`);
       const ind = this.pickedTooth.findIndex((item) => item.id === toothId);
 
       if (ind == -1) {
         // default
         // 重置表单数据
+        if (this.switchValid) {
+          this.toothOptions = ["自动分割", "手动分割", "手动上传"];
+        } else {
+          this.toothOptions = ["手动分割", "手动上传"];
+        }
         this.switchOn = false;
         this.formData.sel_datasource = this.toothOptions[0];
         this.formData.ckbx_cache = false;
@@ -171,6 +202,18 @@ export default {
         this.formData.sel_datasource = this.pickedTooth[ind].sel_datasource;
         this.formData.ckbx_cache = this.pickedTooth[ind].ckbx_cache;
         this.formData.ckbx_oppo = this.pickedTooth[ind].ckbx_oppo;
+      }
+
+      if (this.switchValid) {
+        // set preview
+        invoke("backend_getmesh", { token: `autoseg_${toothId}` }).then(
+          (obj) => {
+            bus.emit("set-obj-to-preview", {
+              obj: obj,
+              name: `autoseg_${toothId}`,
+            });
+          }
+        );
       }
     },
     pickTooth() {

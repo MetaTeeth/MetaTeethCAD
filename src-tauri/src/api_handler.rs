@@ -13,6 +13,16 @@ use std::io::Cursor;
 use url::Url;
 
 use crate::converter::convert_obj_to_ply;
+use crate::db::{get_mesh, insert_mesh};
+use crate::submesh::extract_submesh;
+
+fn clone_obj(obj: &Obj<Position, u32>) -> Obj<Position, u32> {
+    Obj {
+        name: obj.name.clone(),
+        vertices: obj.vertices.clone(),
+        indices: obj.indices.clone(),
+    }
+}
 
 #[derive(Deserialize, Debug)]
 pub struct RespToken {
@@ -148,6 +158,9 @@ pub async fn backend_load_obj(file_path: String) -> OBJPack {
         Ok(token) => token,
     };
 
+    // save obj to db
+    insert_mesh(token.clone(), clone_obj(&model));
+
     OBJPack {
         obj: model,
         token: token,
@@ -223,4 +236,34 @@ pub async fn backend_restore_full(file_path: String) -> Obj {
     };
 
     model
+}
+
+#[tauri::command]
+pub async fn backend_submesh(
+    token: String,
+    subverts: Vec<u32>,
+    label: String,
+) -> Obj<Position, u32> {
+    if let Some(mesh) = get_mesh(&token) {
+        let submesh = extract_submesh(&mesh, subverts).await;
+        insert_mesh(format!("autoseg_{}", label), clone_obj(&submesh));
+        return submesh;
+    }
+    Obj {
+        name: None,
+        vertices: Vec::new(),
+        indices: vec![0u32],
+    }
+}
+
+#[tauri::command]
+pub async fn backend_getmesh(token: String) -> Obj<Position, u32> {
+    match get_mesh(&token) {
+        None => Obj {
+            name: Some(String::from("err")),
+            vertices: Vec::new(),
+            indices: vec![0u32],
+        },
+        Some(mesh) => mesh
+    }
 }

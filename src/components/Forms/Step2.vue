@@ -60,6 +60,27 @@ export default {
             vert_colors.push(color_circles[labels[ind]]);
           }
 
+          // submeshes
+          const clusters = {};
+          labels.forEach((label, index) => {
+            if (!clusters[label]) {
+              clusters[label] = [];
+            }
+            clusters[label].push(index);
+          });
+          Object.keys(clusters).forEach((label) => {
+            if (label != 0) {
+              invoke("backend_submesh", {
+                token: token,
+                subverts: clusters[label],
+                label: label,
+              }).then((obj) => {
+                bus.emit("set-tooth-segment-ready", { label: label });
+                console.log("submesh", label);
+              });
+            }
+          });
+
           bus.emit("change-vertex-color", {
             name: token,
             colormap: vert_colors,

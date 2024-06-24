@@ -5,7 +5,6 @@
 use obj::{ Obj, Position };
 use ply_rs::ply::{ Ply, DefaultElement, Encoding, ElementDef, PropertyDef, PropertyType, ScalarType, Property, Addable };
 
-
 // https://github.com/Fluci/ply-rs/pull/23
 pub async fn convert_obj_to_ply(_obj: &Obj<Position, u32>) -> Ply<DefaultElement> {
     let mut _ply = Ply::<DefaultElement>::new();

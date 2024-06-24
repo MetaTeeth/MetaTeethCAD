@@ -22,6 +22,7 @@ reqwest = { version = "0.12.4", features = ["json", "multipart"] }
 obj-rs = "*"
 ply-rs = { git = "https://github.com/Matthias-Fauconneau/ply-rs" }
 url = "*"
+once_cell = "1.10.0"
 
 [features]
 # by default Tauri runs in production mode

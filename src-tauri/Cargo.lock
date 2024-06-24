@@ -7,6 +7,7 @@ name = "BeauTee"
 version = "0.0.4"
 dependencies = [
  "obj-rs",
+ "once_cell",
  "ply-rs",
  "reqwest 0.12.4",
  "serde",

@@ -46,6 +46,7 @@ export default {
           }
           else if (this.state == 3) {
             this.$refs.form_step3.visible = true;
+            this.$refs.form_step3.selectedTooth = null;
           }
           break;
         default:

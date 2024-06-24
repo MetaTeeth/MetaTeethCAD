@@ -7,6 +7,8 @@ use tauri::api::shell;
 use tauri::{ CustomMenuItem, Manager, Menu, Submenu };
 mod api_handler;
 mod converter;
+mod submesh;
+mod db;
 
 
 #[tokio::main]
@@ -21,7 +23,9 @@ async fn main() {
             // api_handler::backend_restore_embedding,
             // api_handler::backend_restore_download,
             api_handler::backend_load_obj,
-            api_handler::backend_segment_jaw
+            api_handler::backend_segment_jaw,
+            api_handler::backend_submesh,
+            api_handler::backend_getmesh
         ])
         .menu(
             tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(

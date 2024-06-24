@@ -49,9 +49,9 @@ export default {
       var axes = new THREE.AxesHelper(100);
       this.scene.add(axes);
 
-      this.camera.position.x = 10;
-      this.camera.position.y = 6;
-      this.camera.position.z = 10;
+      this.camera.position.x = 30;
+      this.camera.position.y = 15;
+      this.camera.position.z = 30;
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
