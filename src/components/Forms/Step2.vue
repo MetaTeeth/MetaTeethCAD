@@ -6,7 +6,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import bus from "vue3-eventbus";
 
-var color_circles = {
+const color_circles = {
   0: "rgb(230, 230, 230)",
   11: "#628bd5",
   12: "#acb839",

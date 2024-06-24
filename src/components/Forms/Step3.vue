@@ -1,52 +1,214 @@
 <template>
-  <v-dialog v-model="visible" max-width="700">
-    <v-card prepend-icon="mdi-account" title="缺损牙位选择">
+  <v-dialog v-model="visible" max-width="868px">
+    <v-card>
+      <v-card-title class="headline">缺损牙位选择器</v-card-title>
       <v-card-text>
-        <v-row dense> </v-row>
+        <v-container>
+          <v-row>
+            <!-- 第一部分：FDI 牙位选择器 -->
+            <v-col class="d-flex" cols="12">
+              <v-chip-group mandatory column>
+                <div v-for="teeth in teethKinds" :key="teeth.order">
+                  <v-chip
+                    :class="{
+                      picked: pickedTooth.some((item) => item.id === tooth.id),
+                      selected: selectedTooth === tooth.id,
+                    }"
+                    v-for="tooth in teeth.elements"
+                    :key="tooth.id"
+                    :text="tooth.name"
+                    :value="tooth.name"
+                    rounded
+                    variant="outlined"
+                    @click="selectTooth(tooth.id)"
+                  >
+                  </v-chip>
+                </div>
+              </v-chip-group>
+            </v-col>
+          </v-row>
+        </v-container>
+        <v-container>
+          <v-row>
+            <!-- 第二部分和第三部分右半部分 -->
+            <v-col class="d-flex" cols="6">
+              <!-- 第二部分：FDIViewer 预览 -->
+              <FDIViewer />
+            </v-col>
+            <v-col>
+              <!-- 第三部分：详细配置表单 -->
+              <v-form v-if="selectedTooth" :update:modelValue="pickTooth()">
+                <v-select
+                  v-model="formData.sel_datasource"
+                  :items="toothOptions"
+                  label="牙位数据来源"
+                  required
+                  variant="outlined"
+                  density="comfortable"
+                ></v-select>
+                <v-checkbox
+                  v-model="formData.ckbx_cache"
+                  label="启用缓存"
+                ></v-checkbox>
+                <v-checkbox
+                  v-model="formData.ckbx_oppo"
+                  label="参考对称牙齿形态"
+                ></v-checkbox>
+                <v-switch
+                  v-model="switchOn"
+                  color="success"
+                  label="标记为残缺牙齿"
+                  hide-details
+                  density="comfortable"
+                ></v-switch>
+              </v-form>
+            </v-col>
+          </v-row>
+        </v-container>
       </v-card-text>
-
-      <v-card-text>
-        <PreviewScene />
-      </v-card-text>
-      <v-divider></v-divider>
-
       <v-card-actions>
         <v-spacer></v-spacer>
-
-        <v-btn text="取消" variant="plain" @click="visible = false"></v-btn>
-
-        <v-btn
-          color="primary"
-          text="确认"
-          variant="tonal"
-          @click="confirm()"
-        ></v-btn>
+        <v-btn variant="plain" text @click="visible = false"> 取消 </v-btn>
+        <v-btn color="primary" variant="tonal" text @click="saveSettings">
+          下一步
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
-import { open, save } from "@tauri-apps/api/dialog";
-import { invoke } from "@tauri-apps/api/tauri";
-import bus from "vue3-eventbus";
-import PreviewScene from "../PreviewScene.vue";
+import FDIViewer from "../FDIViewer.vue"; // 假设你已经创建了这个组件
 
 export default {
   name: "FormStep3",
-  components: { PreviewScene },
-  data: () => ({
-    visible: false,
-  }),
+  components: {
+    FDIViewer,
+  },
+  data() {
+    return {
+      visible: true,
+      switchOn: false,
+      selectedTooth: 11,
+      pickedTooth: [], // [{ id, params }]
+      teethKinds: [
+        {
+          order: 1,
+          elements: [
+            { id: 18, name: "18" },
+            { id: 17, name: "17" },
+            { id: 16, name: "16" },
+            { id: 15, name: "15" },
+            { id: 14, name: "14" },
+            { id: 13, name: "13" },
+            { id: 12, name: "12" },
+            { id: 11, name: "11" },
+          ],
+        },
+        {
+          order: 2,
+          elements: [
+            { id: 21, name: "21" },
+            { id: 22, name: "22" },
+            { id: 23, name: "23" },
+            { id: 24, name: "24" },
+            { id: 25, name: "25" },
+            { id: 26, name: "26" },
+            { id: 27, name: "27" },
+            { id: 28, name: "28" },
+          ],
+        },
+        {
+          order: 3,
+          elements: [
+            { id: 48, name: "48" },
+            { id: 47, name: "47" },
+            { id: 46, name: "46" },
+            { id: 45, name: "45" },
+            { id: 44, name: "44" },
+            { id: 43, name: "43" },
+            { id: 42, name: "42" },
+            { id: 41, name: "41" },
+          ],
+        },
+        {
+          order: 4,
+          elements: [
+            { id: 31, name: "31" },
+            { id: 32, name: "32" },
+            { id: 33, name: "33" },
+            { id: 34, name: "34" },
+            { id: 35, name: "35" },
+            { id: 36, name: "36" },
+            { id: 37, name: "37" },
+            { id: 38, name: "38" },
+          ],
+        },
+      ],
+      toothOptions: ["自动分割", "手动分割", "手动上传"],
+      formData: {
+        sel_datasource: "自动分割",
+        ckbx_cache: false,
+        ckbx_oppo: false,
+      },
+    };
+  },
   methods: {
-    confirm() {
-      this.visible = false;
+    selectTooth(toothId) {
+      this.selectedTooth = toothId;
+      const ind = this.pickedTooth.findIndex((item) => item.id === toothId);
 
-      bus.emit("go-to-step", { step: 2 });
+      if (ind == -1) {
+        // default
+        // 重置表单数据
+        this.switchOn = false;
+        this.formData.sel_datasource = this.toothOptions[0];
+        this.formData.ckbx_cache = false;
+        this.formData.ckbx_oppo = false;
+      } else {
+        // load config
+        this.switchOn = true;
+        this.formData.sel_datasource = this.pickedTooth[ind].sel_datasource;
+        this.formData.ckbx_cache = this.pickedTooth[ind].ckbx_cache;
+        this.formData.ckbx_oppo = this.pickedTooth[ind].ckbx_oppo;
+      }
+    },
+    pickTooth() {
+      const ind = this.pickedTooth.findIndex(
+        (item) => item.id === this.selectedTooth
+      );
+      if (ind == -1 && this.switchOn) {
+        // append config to pickedTooth
+        this.pickedTooth.push({
+          id: this.selectedTooth,
+          sel_datasource: this.formData.sel_datasource,
+          ckbx_cache: this.formData.ckbx_cache,
+          ckbx_oppo: this.formData.ckbx_oppo,
+        });
+      } else if (ind != -1 && !this.switchOn) {
+        this.pickedTooth.splice(ind, 1);
+      } else if (ind != -1 && this.switchOn) {
+        // modify
+        this.pickedTooth[ind].sel_datasource = this.formData.sel_datasource;
+        this.pickedTooth[ind].ckbx_cache = this.formData.ckbx_cache;
+        this.pickedTooth[ind].ckbx_oppo = this.formData.ckbx_oppo;
+      }
+    },
+    saveSettings() {
+      console.log("Selected Tooth:", this.selectedTooth);
+      console.log("Form Data:", this.formData);
+      // 在这里处理保存逻辑
+      this.visible = false;
     },
   },
-  created() {},
-  //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {},
 };
 </script>
+
+<style scoped>
+.selected {
+  background-color: #42a5f5;
+}
+.picked {
+  background-color: #60e774;
+}
+</style>

@@ -15,7 +15,6 @@
               prepend-inner-icon="mdi-upload"
               readonly
               @mousedown:control="clickUploadOBJ(0)"
-              @focus="dragUploadOBJ(0)"
               v-model="names[0]"
               variant="outlined"
               label="上颌 / Upper Jaw"
@@ -175,9 +174,6 @@ export default {
           }
         );
       }
-    },
-    async dragUploadOBJ(pos) {
-      console.log(pos);
     },
     confirm() {
       for (var ind = 0; ind < 4; ++ind) {

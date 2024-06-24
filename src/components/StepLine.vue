@@ -29,6 +29,7 @@
       <v-timeline align="start" side="end" density="compact">
         <v-timeline-item
           class="mb-12"
+          :key="message.from"
           v-for="message in messages"
           :dot-color="message.color"
           :icon="message.icon"
