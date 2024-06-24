@@ -7,6 +7,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import bus from "vue3-eventbus";
 
+const width = 382;
+const height = 274;
+
 export default {
   name: "FDIViewer",
   mounted() {
@@ -30,9 +33,6 @@ export default {
       // 创建场景
       // const width = container.clientWidth;
       // const height = container.clientHeight;
-
-      const width = 382;
-      const height = 274;
 
       // 创建相机
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -76,12 +76,6 @@ export default {
       this.renderer.render(this.scene, this.camera);
     },
     _set_OBJ(Obj, name) {
-      const container = this.$refs.sceneContainer;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-
-      console.log(width, height);
-
       // free all obj
       this.scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
