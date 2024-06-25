@@ -1,5 +1,5 @@
 <template>
-  <div ref="sceneContainer" class="scene-container"></div>
+  <div ref="sceneContainer" class="scene-container" v-show="isVisible"></div>
 </template>
 
 <script>
@@ -12,20 +12,26 @@ const height = 274;
 
 export default {
   name: "FDIViewer",
+  data() {
+    return {
+      isVisible: false,
+    };
+  },
   mounted() {
     this.initThree();
-    // this.render_scene();
-    bus.on("set-preview-on", () => {
-      const container = this.$refs.sceneContainer;
-      container.style.display = "block";
+    bus.on("set-preview-visible", (param) => {
+      this.isVisible = param.visible;
+      if (this.isVisible) {
+        this.render_scene();
+      }
     });
     bus.on("set-obj-to-preview", (param) => {
       this._set_OBJ(param.obj, param.name);
-      // this.render_scene();
+      this.render_scene();
     });
     bus.on("clear-preview", () => {
       this._clear_OBJ();
-      // this.render_scene();
+      this.render_scene();
     });
   },
   methods: {
@@ -33,7 +39,6 @@ export default {
       this.scene = new THREE.Scene();
 
       const container = this.$refs.sceneContainer;
-      container.style.display = "none";
       // 创建场景
       // const width = container.clientWidth;
       // const height = container.clientHeight;
@@ -65,12 +70,6 @@ export default {
       directionalLight2.position.set(-1, -1, 1);
       this.scene.add(directionalLight3);
 
-      // 创建一个简单的立方体
-      const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
-      this.scene.add(cube);
-
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       // 调整控制属性以允许全方位旋转
       this.controls.enableDamping = true;
@@ -84,15 +83,13 @@ export default {
       // 允许无限制的水平旋转
       this.controls.minAzimuthAngle = -Infinity; // 最小方位角
       this.controls.maxAzimuthAngle = Infinity; // 最大方位角
-      // this.controls.addEventListener("change", () => {
-      //   this.render_scene();
-      // });
+      this.controls.addEventListener("change", () => {
+        this.render_scene();
+      });
 
       this.render_scene();
     },
     render_scene() {
-      this.animationId = requestAnimationFrame(this.render_scene);
-      this.controls.update();
       this.renderer.render(this.scene, this.camera);
     },
     _clear_OBJ() {
@@ -147,9 +144,6 @@ export default {
     },
   },
   beforeDestroy() {
-    // 清除渲染循环
-    cancelAnimationFrame(this.animationId);
-    // 释放内存
     this.renderer.dispose();
   },
 };
@@ -159,5 +153,9 @@ export default {
 .scene-container {
   width: 382px;
   height: 274px;
+}
+
+.hidden {
+  display: none;
 }
 </style>

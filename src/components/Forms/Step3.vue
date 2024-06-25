@@ -1,5 +1,9 @@
 <template>
-  <v-dialog v-model="visible" max-width="868px">
+  <v-dialog
+    v-model="visible"
+    max-width="868px"
+    :update:modelValue="restartDialog()"
+  >
     <v-card>
       <v-card-title class="headline">缺损牙位选择器</v-card-title>
       <v-card-text>
@@ -78,10 +82,22 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="plain" text @click="visible = false"> 取消 </v-btn>
-        <v-btn color="primary" variant="tonal" text @click="saveSettings">
-          下一步
-        </v-btn>
+        <v-btn variant="plain" @click="visible = false" text="取消"></v-btn>
+        <v-btn
+          v-if="pickedTooth.length > 0"
+          color="primary"
+          variant="tonal"
+          @click="saveSettings"
+          text="下一步"
+        />
+        <v-btn
+          v-else
+          color="primary"
+          variant="tonal"
+          @click="saveSettings"
+          text="下一步"
+          disabled
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -100,7 +116,6 @@ export default {
   data() {
     return {
       visible: false,
-      scene_init: false,
       switchOn: false,
       selectedTooth: null,
       pickedTooth: [], // [{ id, params }]
@@ -174,10 +189,18 @@ export default {
     });
   },
   methods: {
+    restartDialog() {
+      if (!this.visible) {
+        bus.emit("set-preview-visible", { visible: false });
+      }
+      if (this.visible && this.selectedTooth) {
+        bus.emit("set-preview-visible", { visible: true });
+      }
+    },
     selectTooth(toothId) {
-      if (!this.scene_init) {
-        this.scene_init = true;
-        bus.emit("set-preview-on", {});
+      if (!this.selectTooth) {
+        // first pick
+        bus.emit("set-preview-visible", { visible: true });
       }
 
       this.selectedTooth = toothId;
@@ -214,8 +237,7 @@ export default {
             });
           }
         );
-      }
-      else {
+      } else {
         bus.emit("clear-preview", {});
       }
     },
@@ -241,10 +263,8 @@ export default {
       }
     },
     saveSettings() {
-      console.log("Selected Tooth:", this.selectedTooth);
-      console.log("Form Data:", this.formData);
-      // 在这里处理保存逻辑
       this.visible = false;
+      bus.emit("go-to-step", { step: 4 });
     },
   },
 };

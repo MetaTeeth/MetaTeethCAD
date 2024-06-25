@@ -6,6 +6,7 @@
     <FormStep1 ref="form_step1" />
     <FormStep2 ref="form_step2" />
     <FormStep3 ref="form_step3" />
+    <FormStep4 ref="form_step4" />
 
     <ThreeScene ref="three_scene" />
   </v-main>
@@ -20,10 +21,19 @@ import StepLine from "../components/StepLine.vue";
 import FormStep1 from "../components/Forms/Step1.vue";
 import FormStep2 from "../components/Forms/Step2.vue";
 import FormStep3 from "../components/Forms/Step3.vue";
+import FormStep4 from "../components/Forms/Step4.vue";
 
 export default {
   name: "WorkStation",
-  components: { ThreeScene, FormStep1, FormStep2, FormStep3, ToolDial, StepLine },
+  components: {
+    ThreeScene,
+    FormStep1,
+    FormStep2,
+    FormStep3,
+    FormStep4,
+    ToolDial,
+    StepLine,
+  },
   props: {},
   data() {
     return {
@@ -43,10 +53,8 @@ export default {
         case "console":
           if (this.state == 1) {
             this.$refs.form_step1.visible = true;
-          }
-          else if (this.state == 3) {
+          } else if (this.state == 3) {
             this.$refs.form_step3.visible = true;
-            this.$refs.form_step3.selectedTooth = null;
           }
           break;
         default:
@@ -69,6 +77,13 @@ export default {
         }
         if (tokens[1].length > 16) {
           await this.$refs.form_step2.segment_jaw(tokens[1], "lower");
+        }
+      } else if (this.state == 4) {
+        const params = this.$refs.form_step3.pickedTooth;
+        for (const pack of params) {
+          if (pack.sel_datasource == "自动分割") {
+            await this.$refs.form_step4.restore_tooth(`autoseg_${pack.id}`, pack.id);
+          }
         }
       }
     },

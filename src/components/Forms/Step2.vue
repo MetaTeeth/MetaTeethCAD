@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="visible" max-width="700"> </v-dialog>
+  <div display="none"></div>
 </template>
 
 <script>
@@ -45,7 +45,6 @@ const color_circles = {
 export default {
   name: "FormStep2",
   data: () => ({
-    visible: false,
     labels_store: {}, // { name(token): labels }
   }),
   methods: {
