@@ -215,6 +215,9 @@ export default {
           }
         );
       }
+      else {
+        bus.emit("clear-preview", {});
+      }
     },
     pickTooth() {
       const ind = this.pickedTooth.findIndex(

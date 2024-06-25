@@ -23,6 +23,10 @@ export default {
       this._set_OBJ(param.obj, param.name);
       this.render_scene();
     });
+    bus.on("clear-preview", () => {
+      this._clear_OBJ();
+      this.render_scene();
+    });
   },
   methods: {
     initThree() {
@@ -36,7 +40,7 @@ export default {
 
       // 创建相机
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-      this.camera.position.z = 10;
+      this.camera.position.z = 8;
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
@@ -62,10 +66,10 @@ export default {
       this.scene.add(directionalLight3);
 
       // 创建一个简单的立方体
-      const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
-      this.scene.add(cube);
+      // const geometry = new THREE.BoxGeometry();
+      // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+      // const cube = new THREE.Mesh(geometry, material);
+      // this.scene.add(cube);
 
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.addEventListener("change", () => {
@@ -75,15 +79,17 @@ export default {
     render_scene() {
       this.renderer.render(this.scene, this.camera);
     },
-    _set_OBJ(Obj, name) {
-      // free all obj
+    _clear_OBJ() {
       this.scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
           this.scene.remove(object);
         }
       });
-
+    },
+    _set_OBJ(Obj, name) {
+      this._clear_OBJ();
+      // free all obj
       const positions = [];
       const colors = [];
 
