@@ -11,7 +11,9 @@ export default {
   data: () => ({}),
   methods: {
     async restore_tooth(token, label) {
-      console.log("restore =>", token);
+      invoke("backend_restore_tooth", { token: token, label: label }).then((obj) => {
+        bus.emit("add-obj-to-scene", { obj: obj, name: `autores_${token}` });
+      });
     },
   },
 };

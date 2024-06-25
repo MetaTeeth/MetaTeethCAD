@@ -38,7 +38,7 @@ pub struct OBJPack {
 pub async fn download_file(
     client: &reqwest::Client,
     token: &String,
-) -> Result<Obj, Box<dyn std::error::Error>> {
+) -> Result<Obj<Position, u32>, Box<dyn std::error::Error>> {
     let url = Url::parse_with_params(
         "https://dental.scubot.com/restoration/extract",
         &[("token", &token)],
@@ -53,7 +53,7 @@ pub async fn download_file(
 
     let buf_read = std::io::BufReader::new(content);
 
-    let model: Obj = match load_obj(buf_read) {
+    let model: Obj<Position, u32> = match load_obj(buf_read) {
         Err(why) => panic!("couldn't load {:?}", why),
         Ok(model) => model,
     };
@@ -168,74 +168,42 @@ pub async fn backend_load_obj(file_path: String) -> OBJPack {
 }
 
 #[tauri::command]
-pub async fn backend_register_obj(file_path: String) -> String {
-    let client = reqwest::Client::new();
-    let file_bytes = std::fs::read(file_path).unwrap();
-    let token = match upload_file(&client, file_bytes).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(token) => token,
-    };
-    token
-}
-
-#[tauri::command]
-pub async fn backend_restore_preprocess(token: String) {
-    let client = reqwest::Client::new();
-    _ = match request_api_simple(&client, "/restoration/preprocess", &token).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg,
-    };
-}
-
-#[tauri::command]
-pub async fn backend_restore_embedding(token: String) {
-    let client = reqwest::Client::new();
-    _ = match request_api_simple(&client, "/restoration/embedding", &token).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg,
-    };
-}
-
-#[tauri::command]
-pub async fn backend_restore_download(token: String) -> Obj {
-    let client = reqwest::Client::new();
-    let model = match download_file(&client, &token).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(model) => model,
-    };
-    model
-}
-
-#[tauri::command]
-pub async fn backend_restore_full(file_path: String) -> Obj {
+pub async fn backend_restore_tooth(token: String, label: u32) -> Obj<Position, u32> {
     let client = reqwest::Client::new();
 
-    let file_bytes = std::fs::read(file_path).unwrap();
-    let token = match upload_file(&client, file_bytes).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(token) => token,
-    };
+    if let Some(obj) = get_mesh(&token) {
+        let mut _ply = convert_obj_to_ply(&obj).await;
+        let mut buf = Vec::<u8>::new();
+        let _ = Writer::new().write_ply(&mut buf, &mut _ply).unwrap();
+        
+        let _token = match upload_file(&client, buf).await {
+            Err(why) => panic!("Err {:?}", why),
+            Ok(token) => token,
+        };
 
-    println!("Token => {}", token);
+        _ = match request_api_simple(&client, "/restoration/preprocess", &_token).await {
+            Err(why) => panic!("Err {:?}", why),
+            Ok(msg) => msg,
+        };
 
-    _ = match request_api_simple(&client, "/restoration/preprocess", &token).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg,
-    };
-    println!("Preprocess done.");
+        _ = match request_api_simple(&client, "/restoration/embedding", &_token).await {
+            Err(why) => panic!("Err {:?}", why),
+            Ok(msg) => msg,
+        };
 
-    _ = match request_api_simple(&client, "/restoration/embedding", &token).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(msg) => msg,
-    };
-    println!("Emebedding done.");
+        let model = match download_file(&client, &_token).await {
+            Err(why) => panic!("Err {:?}", why),
+            Ok(model) => model,
+        };
 
-    let model = match download_file(&client, &token).await {
-        Err(why) => panic!("Err {:?}", why),
-        Ok(model) => model,
-    };
-
-    model
+        model
+    } else {
+        Obj {
+            name: Some(String::from("err")),
+            vertices: Vec::new(),
+            indices: vec![0u32],
+        }
+    }
 }
 
 #[tauri::command]
@@ -264,6 +232,6 @@ pub async fn backend_getmesh(token: String) -> Obj<Position, u32> {
             vertices: Vec::new(),
             indices: vec![0u32],
         },
-        Some(mesh) => mesh
+        Some(mesh) => mesh,
     }
 }

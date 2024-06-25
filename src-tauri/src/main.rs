@@ -4,12 +4,11 @@
 )]
 
 use tauri::api::shell;
-use tauri::{ CustomMenuItem, Manager, Menu, Submenu };
+use tauri::{CustomMenuItem, Manager, Menu, Submenu};
 mod api_handler;
 mod converter;
-mod submesh;
 mod db;
-
+mod submesh;
 
 #[tokio::main]
 async fn main() {
@@ -17,26 +16,18 @@ async fn main() {
     let ctx = tauri::generate_context!();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            // api_handler::backend_restore_full,
-            // api_handler::backend_register_obj,
-            // api_handler::backend_restore_preprocess,
-            // api_handler::backend_restore_embedding,
-            // api_handler::backend_restore_download,
+            api_handler::backend_restore_tooth,
             api_handler::backend_load_obj,
             api_handler::backend_segment_jaw,
             api_handler::backend_submesh,
             api_handler::backend_getmesh
         ])
-        .menu(
-            tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(
-                "Help",
-                Menu::with_items([CustomMenuItem::new(
-                    "Online Documentation",
-                    "Online Documentation",
-                )
-                .into()]),
-            )),
-        )
+        .menu(tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(
+            "Help",
+            Menu::with_items([
+                CustomMenuItem::new("Online Documentation", "Online Documentation").into(),
+            ]),
+        )))
         .on_menu_event(|event| {
             let event_name: &str = event.menu_item_id();
             match event_name {
