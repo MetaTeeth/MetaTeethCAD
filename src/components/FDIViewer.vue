@@ -14,18 +14,18 @@ export default {
   name: "FDIViewer",
   mounted() {
     this.initThree();
-    this.render_scene();
+    // this.render_scene();
     bus.on("set-preview-on", () => {
       const container = this.$refs.sceneContainer;
       container.style.display = "block";
     });
     bus.on("set-obj-to-preview", (param) => {
       this._set_OBJ(param.obj, param.name);
-      this.render_scene();
+      // this.render_scene();
     });
     bus.on("clear-preview", () => {
       this._clear_OBJ();
-      this.render_scene();
+      // this.render_scene();
     });
   },
   methods: {
@@ -40,7 +40,7 @@ export default {
 
       // 创建相机
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-      this.camera.position.z = 8;
+      this.camera.position.z = 9;
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
@@ -66,17 +66,33 @@ export default {
       this.scene.add(directionalLight3);
 
       // 创建一个简单的立方体
-      // const geometry = new THREE.BoxGeometry();
-      // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      // const cube = new THREE.Mesh(geometry, material);
-      // this.scene.add(cube);
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+      const cube = new THREE.Mesh(geometry, material);
+      this.scene.add(cube);
 
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-      this.controls.addEventListener("change", () => {
-        this.render_scene();
-      });
+      // 调整控制属性以允许全方位旋转
+      this.controls.enableDamping = true;
+      this.controls.dampingFactor = 0.25;
+      this.controls.screenSpacePanning = false;
+
+      // 允许无限制的垂直旋转
+      this.controls.minPolarAngle = 0; // 最小极角
+      this.controls.maxPolarAngle = Math.PI; // 最大极角
+
+      // 允许无限制的水平旋转
+      this.controls.minAzimuthAngle = -Infinity; // 最小方位角
+      this.controls.maxAzimuthAngle = Infinity; // 最大方位角
+      // this.controls.addEventListener("change", () => {
+      //   this.render_scene();
+      // });
+
+      this.render_scene();
     },
     render_scene() {
+      this.animationId = requestAnimationFrame(this.render_scene);
+      this.controls.update();
       this.renderer.render(this.scene, this.camera);
     },
     _clear_OBJ() {
@@ -126,9 +142,15 @@ export default {
       mesh.name = name;
 
       this.scene.add(mesh);
-      this.camera.position.z = 10;
+      this.camera.position.z = 9;
       this.camera.lookAt(this.scene.position);
     },
+  },
+  beforeDestroy() {
+    // 清除渲染循环
+    cancelAnimationFrame(this.animationId);
+    // 释放内存
+    this.renderer.dispose();
   },
 };
 </script>
