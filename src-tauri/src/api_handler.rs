@@ -38,10 +38,11 @@ pub struct OBJPack {
 pub async fn download_file(
     client: &reqwest::Client,
     token: &String,
+    label: &String,
 ) -> Result<Obj<Position, u32>, Box<dyn std::error::Error>> {
     let url = Url::parse_with_params(
         "https://dental.scubot.com/restoration/extract",
-        &[("token", &token)],
+        &[("token", &token), ("label", &label)],
     )?;
     let resp = client
         .post(url)
@@ -85,10 +86,11 @@ pub async fn upload_file(
     Ok(resp_content.token)
 }
 
-pub async fn request_api_simple(
+pub async fn request_api_simple_with_label(
     client: &reqwest::Client,
     api: &str,
     token: &String,
+    label: &String,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let url = Url::parse_with_params(
         format!(
@@ -97,7 +99,7 @@ pub async fn request_api_simple(
             String::from(api)
         )
         .as_str(),
-        &[("token", &token)],
+        &[("token", &token), ("label", &label)],
     )?;
 
     let resp = client
@@ -181,17 +183,31 @@ pub async fn backend_restore_tooth(token: String, label: u32) -> Obj<Position, u
             Ok(token) => token,
         };
 
-        _ = match request_api_simple(&client, "/restoration/preprocess", &_token).await {
+        _ = match request_api_simple_with_label(
+            &client,
+            "/restoration/preprocess",
+            &_token,
+            &format!("{}", &label),
+        )
+        .await
+        {
             Err(why) => panic!("Err {:?}", why),
             Ok(msg) => msg,
         };
 
-        _ = match request_api_simple(&client, "/restoration/embedding", &_token).await {
+        _ = match request_api_simple_with_label(
+            &client,
+            "/restoration/embedding",
+            &_token,
+            &format!("{}", &label),
+        )
+        .await
+        {
             Err(why) => panic!("Err {:?}", why),
             Ok(msg) => msg,
         };
 
-        let model = match download_file(&client, &_token).await {
+        let model = match download_file(&client, &_token, &format!("{}", &label)).await {
             Err(why) => panic!("Err {:?}", why),
             Ok(model) => model,
         };
