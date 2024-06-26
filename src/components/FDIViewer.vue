@@ -46,7 +46,7 @@ export default {
       // 创建相机
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
       this.camera.position.z = 9;
-      this.camera.lookAt(this.scene.position);
+      this.camera.lookAt(new THREE.Vector3(0, 0, 0));
       this.scene.add(this.camera);
 
       // 创建渲染器
@@ -140,7 +140,7 @@ export default {
 
       this.scene.add(mesh);
       this.camera.position.z = 9;
-      this.camera.lookAt(this.scene.position);
+      this.camera.lookAt(new THREE.Vector3(0, 0, 0));
     },
   },
   beforeDestroy() {

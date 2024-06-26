@@ -19,7 +19,7 @@ async fn main() {
             api_handler::backend_restore_tooth,
             api_handler::backend_load_obj,
             api_handler::backend_segment_jaw,
-            api_handler::backend_submesh,
+            api_handler::backend_submeshes,
             api_handler::backend_getmesh
         ])
         .menu(tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(

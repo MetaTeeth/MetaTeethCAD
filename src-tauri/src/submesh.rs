@@ -2,50 +2,56 @@ use obj::{Obj, Position};
 /**
  * submesh from jaw mesh to teeth mesh
  */
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-pub async fn extract_submesh(
-    original_obj: &Obj<Position, u32>,
-    subverts: Vec<u32>,
-) -> Obj<Position, u32> {
-    let mut sub_vertices: Vec<Position> = Vec::new();
-    let mut sub_indices: Vec<u32> = Vec::new();
-    let mut vertex_map: HashMap<u32, u32> = HashMap::new(); // Original vertex index to new index map
+pub async fn create_submeshes(
+    obj: &Obj<Position, u32>,
+    labels: Vec<u32>,
+) -> HashMap<u32, Obj<Position, u32>> {
+    let mut submeshes: HashMap<u32, (Vec<Position>, Vec<u32>)> = HashMap::new();
 
-    // HashSet to keep track of vertices already added to submesh
-    let mut sub_vertex_set: HashSet<u32> = HashSet::new();
+    for (_, &label) in labels.iter().enumerate() {
+        if label == 0 {
+            continue; // Skip label 0
+        }
+        submeshes
+            .entry(label)
+            .or_insert_with(|| (Vec::new(), Vec::new()));
+    }
 
-    // Process each triangle defined by original_obj's indices
-    for chunk in original_obj.indices.chunks_exact(3) {
-        let triangle_indices = [chunk[0], chunk[1], chunk[2]];
-        let mut contains_subvert = false;
-
-        // Check if the triangle contains any subvert
-        for subvert in &subverts {
-            if triangle_indices.contains(&subvert) {
-                contains_subvert = true;
-                break;
-            }
+    for face in obj.indices.chunks(3) {
+        let label = labels[face[0] as usize];
+        if label == 0 {
+            continue; // Skip faces with any vertex labeled 0
+        }
+        if labels[face[1] as usize] == 0 || labels[face[2] as usize] == 0 {
+            continue;
         }
 
-        // If the triangle contains any subvert, add all its vertices to submesh
-        if contains_subvert {
-            for &orig_index in &triangle_indices {
-                if !sub_vertex_set.contains(&orig_index) {
-                    let original_vertex = &original_obj.vertices[orig_index as usize];
-                    let new_index = sub_vertices.len() as u32;
-                    vertex_map.insert(orig_index, new_index);
-                    sub_vertices.push(original_vertex.clone());
-                    sub_vertex_set.insert(orig_index);
-                }
-                sub_indices.push(*vertex_map.get(&orig_index).unwrap());
+        let (vertices, indices) = submeshes.get_mut(&label).unwrap();
+
+        for &index in face {
+            let vertex = obj.vertices[index as usize];
+            if let Some(pos) = vertices.iter().position(|&v| v == vertex) {
+                indices.push(pos as u32);
+            } else {
+                vertices.push(vertex);
+                indices.push((vertices.len() - 1) as u32);
             }
         }
     }
 
-    Obj {
-        name: None,
-        vertices: sub_vertices,
-        indices: sub_indices,
-    }
+    submeshes
+        .into_iter()
+        .map(|(label, (vertices, indices))| {
+            (
+                label,
+                Obj {
+                    name: None,
+                    vertices: vertices,
+                    indices: indices,
+                },
+            )
+        })
+        .collect()
 }

@@ -60,32 +60,20 @@ export default {
           }
 
           // submeshes
-          const clusters = {};
-          labels.forEach((label, index) => {
-            if (!clusters[label]) {
-              clusters[label] = [];
-            }
-            clusters[label].push(index);
-          });
-          Object.keys(clusters).forEach((label) => {
-            if (label != 0) {
-              invoke("backend_submesh", {
-                token: token,
-                subverts: clusters[label],
-                label: label,
-              }).then((obj) => {
+          invoke("backend_submeshes", { token: token, labels: labels }).then(
+            (meshes) => {
+              Object.keys(meshes).forEach((label) => {
                 bus.emit("set-tooth-segment-ready", { label: label });
-                console.log("submesh", label);
               });
+
+              bus.emit("go-to-step", { step: 3 });
             }
-          });
+          );
 
           bus.emit("change-vertex-color", {
             name: token,
             colormap: vert_colors,
           });
-
-          bus.emit("go-to-step", { step: 3 });
         }
       );
     },

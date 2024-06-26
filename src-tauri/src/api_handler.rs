@@ -14,7 +14,7 @@ use url::Url;
 
 use crate::converter::convert_obj_to_ply;
 use crate::db::{get_mesh, insert_mesh};
-use crate::submesh::extract_submesh;
+use crate::submesh::create_submeshes;
 
 fn clone_obj(obj: &Obj<Position, u32>) -> Obj<Position, u32> {
     Obj {
@@ -175,7 +175,7 @@ pub async fn backend_restore_tooth(token: String, label: u32) -> Obj<Position, u
         let mut _ply = convert_obj_to_ply(&obj).await;
         let mut buf = Vec::<u8>::new();
         let _ = Writer::new().write_ply(&mut buf, &mut _ply).unwrap();
-        
+
         let _token = match upload_file(&client, buf).await {
             Err(why) => panic!("Err {:?}", why),
             Ok(token) => token,
@@ -207,20 +207,21 @@ pub async fn backend_restore_tooth(token: String, label: u32) -> Obj<Position, u
 }
 
 #[tauri::command]
-pub async fn backend_submesh(
+pub async fn backend_submeshes(
     token: String,
-    subverts: Vec<u32>,
-    label: String,
-) -> Obj<Position, u32> {
+    labels: Vec<u32>,
+) -> HashMap<u32, Obj<Position, u32>> {
     if let Some(mesh) = get_mesh(&token) {
-        let submesh = extract_submesh(&mesh, subverts).await;
-        insert_mesh(format!("autoseg_{}", label), clone_obj(&submesh));
-        return submesh;
-    }
-    Obj {
-        name: None,
-        vertices: Vec::new(),
-        indices: vec![0u32],
+        let submeshes = create_submeshes(&mesh, labels).await;
+
+        for (label, submesh) in &submeshes {
+            // local save
+            insert_mesh(format!("autoseg_{}", label), clone_obj(&submesh));
+        }
+
+        submeshes
+    } else {
+        HashMap::new()
     }
 }
 
