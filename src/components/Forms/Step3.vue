@@ -65,7 +65,7 @@ export default {
   },
   data() {
     return {
-      visible: true,
+      visible: false,
       switchOn: false,
       selectedTooth: null,
       pickedTooth: [], // [{ id, params }]

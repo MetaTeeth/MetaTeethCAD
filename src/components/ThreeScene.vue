@@ -55,16 +55,16 @@ export default {
       this.camera.lookAt(this.scene.position);
       this.scene.add(this.camera);
 
-      const ambientLight = new THREE.AmbientLight(0x444444, 0.8);
+      const ambientLight = new THREE.AmbientLight(0x444444, 0.6);
       this.scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
       directionalLight.position.set(1, 1, 1);
       this.scene.add(directionalLight);
-      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
+      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
       directionalLight2.position.set(1, -1, -1);
       this.scene.add(directionalLight2);
-      const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.6);
-      directionalLight2.position.set(-1, -1, 1);
+      const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
+      directionalLight3.position.set(-1, -0.5, 0.0);
       this.scene.add(directionalLight3);
 
       // 控制器，监听鼠标事件

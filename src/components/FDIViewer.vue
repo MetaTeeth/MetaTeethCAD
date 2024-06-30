@@ -5,6 +5,9 @@
 <script>
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import bus from "vue3-eventbus";
 
 const width = 382;
@@ -50,47 +53,47 @@ export default {
       this.scene.add(this.camera);
 
       // 创建渲染器
-      this.renderer = new THREE.WebGLRenderer();
-      this.renderer.setSize(width, height);
-      this.renderer.setClearColor(0xfffbfe, 1);
-      this.renderer.setPixelRatio(window.devicePixelRatio);
-      this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      container.appendChild(this.renderer.domElement);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(width, height);
+      renderer.setClearColor(0xfffbfe, 1);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-      const ambientLight = new THREE.AmbientLight(0x444444, 0.8);
+      this.composer = new EffectComposer(renderer);
+      this.composer.setSize(width, height);
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       this.scene.add(ambientLight);
       const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
       directionalLight.position.set(1, 1, 1);
       this.scene.add(directionalLight);
-      const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
-      directionalLight2.position.set(1, -1, -1);
-      this.scene.add(directionalLight2);
       const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.6);
-      directionalLight2.position.set(-1, -1, 1);
+      directionalLight3.position.set(-1, -1, 1);
       this.scene.add(directionalLight3);
 
-      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-      // 调整控制属性以允许全方位旋转
-      this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.25;
-      this.controls.screenSpacePanning = false;
+      this.controls = new OrbitControls(this.camera, renderer.domElement);
 
-      // 允许无限制的垂直旋转
-      this.controls.minPolarAngle = 0; // 最小极角
-      this.controls.maxPolarAngle = Math.PI; // 最大极角
-
-      // 允许无限制的水平旋转
-      this.controls.minAzimuthAngle = -Infinity; // 最小方位角
-      this.controls.maxAzimuthAngle = Infinity; // 最大方位角
       this.controls.addEventListener("change", () => {
         this.render_scene();
       });
 
+      const renderPass = new RenderPass(this.scene, this.camera);
+      this.composer.addPass(renderPass);
+
+      const v2 = new THREE.Vector2(width, height);
+      this.outlinePass = new OutlinePass(v2, this.scene, this.camera);
+      this.outlinePass.edgeStrength = 3 //粗
+      this.composer.addPass(this.outlinePass);
+
       this.render_scene();
     },
     render_scene() {
-      this.renderer.render(this.scene, this.camera);
+      // requestAnimationFrame(this.render_scene);
+
+      // this.controls.update();
+      this.composer.render();
     },
     _clear_OBJ() {
       this.scene.traverse((object) => {
@@ -135,6 +138,8 @@ export default {
       });
 
       const mesh = new THREE.Mesh(geometry, material);
+      // this.outlinePass.selectedObjects = [mesh];
+      
       mesh.receiveShadow = true;
       mesh.name = name;
 
@@ -144,7 +149,8 @@ export default {
     },
   },
   beforeDestroy() {
-    this.renderer.dispose();
+    this.controls.dispose();
+    this.composer.dispose();
   },
 };
 </script>
