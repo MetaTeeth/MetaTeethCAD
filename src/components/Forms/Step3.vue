@@ -1,9 +1,5 @@
 <template>
-  <v-dialog
-    v-model="visible"
-    max-width="868px"
-    :update:modelValue="restartDialog()"
-  >
+  <v-dialog v-model="visible" max-width="875px" :update:modelValue="restartDialog()">
     <v-card>
       <v-card-title class="headline">缺损牙位选择器</v-card-title>
       <v-card-text>
@@ -13,19 +9,11 @@
             <v-col class="d-flex" cols="12">
               <v-chip-group mandatory column>
                 <div v-for="teeth in teethKinds" :key="teeth.order">
-                  <v-chip
-                    :class="{
-                      picked: pickedTooth.some((item) => item.id === tooth.id),
-                      selected: selectedTooth === tooth.id,
-                    }"
-                    v-for="tooth in teeth.elements"
-                    :key="tooth.id"
-                    :text="tooth.name"
-                    :value="tooth.name"
-                    rounded
-                    variant="outlined"
-                    @click="selectTooth(tooth.id)"
-                  >
+                  <v-chip :class="[{
+                    picked: pickedTooth.some((item) => item.id === tooth.id),
+                    selected: selectedTooth === tooth.id,
+                  }, 'font-mono']" v-for="tooth in teeth.elements" :key="tooth.id" :text="tooth.name"
+                    :value="tooth.name" rounded variant="outlined" @click="selectTooth(tooth.id)">
                   </v-chip>
                 </div>
               </v-chip-group>
@@ -42,39 +30,14 @@
             <v-col>
               <!-- 第三部分：详细配置表单 -->
               <v-form v-if="selectedTooth" :update:modelValue="pickTooth()">
-                <v-select
-                  v-model="formData.sel_datasource"
-                  :items="toothOptions"
-                  label="牙位数据来源"
-                  required
-                  variant="outlined"
-                  density="comfortable"
-                ></v-select>
-                <v-checkbox
-                  v-model="formData.ckbx_cache"
-                  label="启用缓存"
-                ></v-checkbox>
-                <v-checkbox
-                  v-model="formData.ckbx_oppo"
-                  label="参考对称牙齿形态"
-                ></v-checkbox>
-                <v-switch
-                  v-if="switchValid"
-                  v-model="switchOn"
-                  color="success"
-                  label="标记为残缺牙齿"
-                  hide-details
-                  density="comfortable"
-                ></v-switch>
-                <v-switch
-                  v-else
-                  v-model="switchOn"
-                  disabled
-                  color="success"
-                  label="标记为残缺牙齿"
-                  hide-details
-                  density="comfortable"
-                ></v-switch>
+                <v-select v-model="formData.sel_datasource" :items="toothOptions" label="牙位数据来源" required
+                  variant="outlined" density="comfortable"></v-select>
+                <v-checkbox v-model="formData.ckbx_cache" label="启用缓存"></v-checkbox>
+                <v-checkbox v-model="formData.ckbx_oppo" label="参考对称牙齿形态"></v-checkbox>
+                <v-switch v-if="switchValid" v-model="switchOn" color="success" label="标记为残缺牙齿" hide-details
+                  density="comfortable"></v-switch>
+                <v-switch v-else v-model="switchOn" disabled color="success" label="标记为残缺牙齿" hide-details
+                  density="comfortable"></v-switch>
               </v-form>
             </v-col>
           </v-row>
@@ -83,21 +46,8 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn variant="plain" @click="visible = false" text="取消"></v-btn>
-        <v-btn
-          v-if="pickedTooth.length > 0"
-          color="primary"
-          variant="tonal"
-          @click="saveSettings"
-          text="下一步"
-        />
-        <v-btn
-          v-else
-          color="primary"
-          variant="tonal"
-          @click="saveSettings"
-          text="下一步"
-          disabled
-        />
+        <v-btn v-if="pickedTooth.length > 0" color="primary" variant="tonal" @click="saveSettings" text="下一步" />
+        <v-btn v-else color="primary" variant="tonal" @click="saveSettings" text="下一步" disabled />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -115,7 +65,7 @@ export default {
   },
   data() {
     return {
-      visible: false,
+      visible: true,
       switchOn: false,
       selectedTooth: null,
       pickedTooth: [], // [{ id, params }]
@@ -274,7 +224,12 @@ export default {
 .selected {
   background-color: #42a5f5;
 }
+
 .picked {
   background-color: #60e774;
+}
+
+.font-mono {
+  font-family:  monospace;
 }
 </style>
