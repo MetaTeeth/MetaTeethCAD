@@ -2,6 +2,7 @@
   <v-main class="d-flex align-center justify-center flex-wrap">
     <ToolDial ref="tool_dial" />
     <StepLine ref="step_line" />
+    <MeshPanel ref="mesh_panel" />
 
     <FormStep1 ref="form_step1" />
     <FormStep2 ref="form_step2" />
@@ -18,6 +19,7 @@ import bus from "vue3-eventbus";
 import ThreeScene from "../components/ThreeScene.vue";
 import ToolDial from "../components/ToolDial.vue";
 import StepLine from "../components/StepLine.vue";
+import MeshPanel from "../components/MeshPanel.vue";
 import FormStep1 from "../components/Forms/Step1.vue";
 import FormStep2 from "../components/Forms/Step2.vue";
 import FormStep3 from "../components/Forms/Step3.vue";
@@ -33,6 +35,7 @@ export default {
     FormStep4,
     ToolDial,
     StepLine,
+    MeshPanel,
   },
   props: {},
   data() {

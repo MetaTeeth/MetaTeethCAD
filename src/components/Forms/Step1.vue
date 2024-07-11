@@ -180,7 +180,8 @@ export default {
         if (this.objs[ind] != null && this.tokens[ind].length > 10) {
           bus.emit("add-obj-to-scene", {
             obj: this.objs[ind],
-            name: this.tokens[ind],
+            name: this.objs[ind].name,
+            token: this.tokens[ind]
           });
         }
       }

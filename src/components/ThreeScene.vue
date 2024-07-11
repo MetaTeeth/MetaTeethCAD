@@ -151,6 +151,11 @@ export default {
       }
       this.render_scene();
     },
+    _change_mesh_visibility(name, visible) {
+      let mesh = this.scene.getObjectByName(name);
+      mesh.material.visible = visible;
+      this.render_scene();
+    }
   },
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {},
@@ -160,11 +165,13 @@ export default {
     this.render_scene();
 
     bus.on("add-obj-to-scene", (param) => {
-      this._load_OBJ(param.obj, param.name);
+      this._load_OBJ(param.obj, param.token);
     });
-
     bus.on("change-vertex-color", (param) => {
       this._change_mesh_colors(param.name, param.colormap);
+    });
+    bus.on("change-mesh-visibility", (param) => {
+      this._change_mesh_visibility(param.name, param.visible);
     });
   },
   beforeCreate() {}, //生命周期 - 创建之前
