@@ -9,16 +9,16 @@
         @mouseleave="endDrag" />
     </template>
     <v-card-text>
-      <v-stepper-vertical class="font-weight-regular text-body-2" flat bg-color="green">
+      <v-stepper-vertical class="font-weight-regular text-body-2" flat>
 
 
         <template v-slot:default="{ step }">
           <v-stepper-vertical-item :complete="step > 1" subtitle="Raw Inputs" title="原始数据输入" value="1">
             <v-text-field v-for="(hint, index) in rawInputHints" :key="index" density="compact" width="200" readonly
-              prepend-inner-icon="mdi-upload" @mousedown:control="clickUploadRawInput(index)"
+              prepend-inner-icon="mdi-upload" clearable @mousedown:control="clickUploadRawInput(index)" @click:clear="clickRemoveRawInput(index)"
               v-model="rawInputs[index].name" variant="outlined" :label="hint" loading>
               <template v-slot:loader>
-                <v-progress-linear :active="rawInputs[index].loaded" color="success" height="5" indeterminate />
+                <v-progress-linear :active="rawInputs[index].loading" color="success" height="5" indeterminate />
               </template>
             </v-text-field>
             <template v-slot:next="{ next }">
@@ -86,13 +86,18 @@ export default {
     dragging: false,
     finished: false,
     rawInputs: [
-      { name: null, filePath: null, loaded: false, mesh: null, token: "" },
-      { name: null, filePath: null, loaded: false, mesh: null, token: "" },
-      { name: null, filePath: null, loaded: false, mesh: null, token: "" },
-      { name: null, filePath: null, loaded: false, mesh: null, token: "" },
+      { name: null, filePath: null, loading: false, token: "" },
+      { name: null, filePath: null, loading: false, token: "" },
+      { name: null, filePath: null, loading: false, token: "" },
+      { name: null, filePath: null, loading: false, token: "" },
     ],
     rawInputHints: ["上颌 / Upper Jaw", "下颌 / Lower Jaw", "咬合左侧 / Bite Left", "咬合右侧 / Bite Right"],
   }),
+  mounted() {
+    bus.on("meta-teeth/mesh-register-completed", (param) => {
+      this.rawInputRegisterReady(param.sourcePath);
+    });
+  },
   methods: {
     startDrag(e) {
       this.dragging = true;
@@ -118,14 +123,22 @@ export default {
         filters: [{ name: "mesh", extensions: ["obj", "stl", "ply"] }],
       });
       if (filePath != null) {
-        this.rawInputs[pos].loaded = true;
-        this.rawInputs[pos].filePath;
-        this.rawInputs[pos].name = getFileNameFromPath(filePath);
-
-        bus.emit("load-obj", { filepath: filePath });
-        this.rawInputs[pos].loaded = false;
+        this.rawInputs[pos].loading = true;
+        this.rawInputs[pos].filePath = filePath;
+        bus.emit("meta-teeth/new-mesh-input", { filePath: filePath });
       }
     },
+    async clickRemoveRawInput(pos) {
+    },
+    rawInputRegisterReady(sourcePath) {
+      for (let ind = 0; ind < this.rawInputs.length; ++ind) {
+        if (this.rawInputs[ind].filePath === sourcePath) {
+          this.rawInputs[ind].name = getFileNameFromPath(sourcePath);
+          this.rawInputs[ind].loading = false;
+          break;
+        }
+      }
+    }
   },
 };
 </script>

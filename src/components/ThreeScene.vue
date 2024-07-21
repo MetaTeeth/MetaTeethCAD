@@ -12,7 +12,7 @@ import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import bus from "vue3-eventbus";
 import { color, instance } from "three/examples/jsm/nodes/Nodes.js";
-import { load_mesh } from "@/scripts/MeshLoader.ts";
+import { load_mesh_util } from "@/scripts/MeshLoader.ts";
 
 export default {
   name: "ThreeScene",
@@ -140,8 +140,8 @@ export default {
 
       this.render_scene();
     },
-    _local_load_OBJ(filepath) {
-      load_mesh(filepath, (object) => {
+    load_mesh_to_scene(filePath) {
+      load_mesh_util(filePath, (object) => {
         let geometry = null;
         if (object instanceof THREE.Object3D) {
           geometry = object.children[0].geometry;
@@ -161,6 +161,10 @@ export default {
         this.scene.add(mesh);
         this.render_scene();
       });
+    },
+    register_mesh_to_remote(filePath) {
+      // TODO
+      bus.emit("meta-teeth/mesh-register-completed", { sourcePath: filePath });
     },
     _change_mesh_colors(name, colormap) {
       let geometry = this.scene.getObjectByName(name).geometry;
@@ -213,8 +217,9 @@ export default {
     this.init();
     this.render_scene();
 
-    bus.on("load-obj", (param) => {
-      this._local_load_OBJ(param.filepath);
+    bus.on("meta-teeth/new-mesh-input", (param) => {
+      this.load_mesh_to_scene(param.filePath);
+      this.register_mesh_to_remote(param.filePath);
     });
     bus.on("add-obj-to-scene", (param) => {
       this._load_OBJ(param.obj, param.token);

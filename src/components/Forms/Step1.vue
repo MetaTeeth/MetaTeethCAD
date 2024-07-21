@@ -166,7 +166,7 @@ export default {
         this.names[pos] = getFileNameFromPath(this.files[pos]);
         this.flags_load[pos] = true;
 
-        // bus.emit("load-obj", { filepath: this.files[pos] });
+        // bus.emit("meta-teeth/new-mesh-input", { filepath: this.files[pos] });
         invoke("backend_load_obj", { filePath: this.files[pos] }).then(
           (OBJPack) => {
             this.objs[pos] = OBJPack.obj;

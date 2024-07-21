@@ -9,7 +9,7 @@ loaderAdapter.set("obj", OBJLoader);
 loaderAdapter.set("stl", STLLoader);
 loaderAdapter.set("ply", PLYLoader);
 
-export function load_mesh(
+export function load_mesh_util(
     filePath: string,
     success_func: Function = () => {},
     process_func: Function = () => {},
