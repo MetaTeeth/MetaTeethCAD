@@ -56,6 +56,24 @@ export default {
         token: param.token, name: param.name, visible: true
       })
     });
+
+    window.addEventListener('keydown', (e) => {
+      const mapper = {
+        t: 'translate', T: 'translate',
+        r: 'rotate', R: 'rotate',
+        s: 'scale', S: 'scale'
+      }
+      if (mapper.hasOwnProperty(e.key)) {
+        this.controls.forEach((c) => {
+          if (c.picked) {
+            bus.emit("set-mesh-transform-helper", { name: c.token, mode: mapper[e.key] });
+          }
+        });
+      }
+      else if (e.key === 'c') {
+        bus.emit('detach-mesh-transform-helper');
+      }
+    });
   },
   methods: {
     startDrag(e) {

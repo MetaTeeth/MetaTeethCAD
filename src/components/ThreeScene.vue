@@ -6,6 +6,7 @@
 <script>
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import bus from "vue3-eventbus";
@@ -81,11 +82,22 @@ export default {
         },
         false
       );
+      this.transformControls = new TransformControls(this.camera, this.renderer.domElement);
+      this.scene.add(this.transformControls);
+      this.transformControls.addEventListener("change", () => {
+        this.render_scene()
+      });
+      this.transformControls.addEventListener("mouseDown", () => {
+        this.controls.enabled = false;
+      });
+      this.transformControls.addEventListener("mouseUp", () => {
+        this.controls.enabled = true;
+      });
     },
     render_scene() {
       this.renderer.render(this.scene, this.camera);
     },
-    animate() {},
+    animate() { },
     _load_OBJ(Obj, name) {
       const positions = [];
       const colors = [];
@@ -110,6 +122,7 @@ export default {
 
       geometry.setIndex(Obj.indices);
       geometry.computeVertexNormals();
+      geometry.center();
 
       const material = new THREE.MeshPhongMaterial({
         // color: new THREE.Color("rgb(230, 230, 230)"),
@@ -155,10 +168,22 @@ export default {
       let mesh = this.scene.getObjectByName(name);
       mesh.material.visible = visible;
       this.render_scene();
+    },
+    _set_transform_control(name, mode) {
+      // mode in ['translate', 'rotate', 'scale']
+      this.transformControls.setMode(mode);
+      // this.transformControls.setSpace('local');
+      const obj = this.scene.getObjectByName(name);
+      this.transformControls.attach(obj);
+      this.render_scene();
+    },
+    _detach_transform_control() {
+      this.transformControls.detach();
+      this.render_scene();
     }
   },
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {},
+  created() { },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
     this.init();
@@ -173,14 +198,20 @@ export default {
     bus.on("change-mesh-visibility", (param) => {
       this._change_mesh_visibility(param.name, param.visible);
     });
+    bus.on("set-mesh-transform-helper", (param) => {
+      this._set_transform_control(param.name, param.mode);
+    });
+    bus.on("detach-mesh-transform-helper", (param) => {
+      this._detach_transform_control();
+    });
   },
-  beforeCreate() {}, //生命周期 - 创建之前
-  beforeMount() {}, //生命周期 - 挂载之前
-  beforeUpdate() {}, //生命周期 - 更新之前
-  updated() {}, //生命周期 - 更新之后
-  beforeDestroy() {}, //生命周期 - 销毁之前
-  destroyed() {}, //生命周期 - 销毁完成
-  activated() {}, //如果页面有keep-alive缓存功能，这个函数会触发
+  beforeCreate() { }, //生命周期 - 创建之前
+  beforeMount() { }, //生命周期 - 挂载之前
+  beforeUpdate() { }, //生命周期 - 更新之前
+  updated() { }, //生命周期 - 更新之后
+  beforeDestroy() { }, //生命周期 - 销毁之前
+  destroyed() { }, //生命周期 - 销毁完成
+  activated() { }, //如果页面有keep-alive缓存功能，这个函数会触发
 };
 </script>
 <style scoped></style>
