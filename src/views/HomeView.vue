@@ -3,7 +3,10 @@
     <v-container>
       <v-row no-gutters>
         <v-col align="center">
-          <v-btn @click="btnToSpace()">工作区</v-btn>
+          <v-btn @click="btnToSpace('/space/enamel_designer')">修复设计</v-btn>
+        </v-col>
+        <v-col align="center">
+          <v-btn @click="btnToSpace('/space/exps/dataset_producer')">数据集收集</v-btn>
         </v-col>
         <v-col align="center">
           <v-btn>设置</v-btn>
@@ -16,8 +19,8 @@
 <script>
 export default {
   methods: {
-    btnToSpace() {
-      this.$router.push("/space");
+    btnToSpace(url) {
+      this.$router.push(url);
     },
   },
 };
