@@ -8,8 +8,7 @@ use std::collections::HashMap;
  * API DOC: https://dental.scubot.com/docs
  */
 use std::fs::File;
-use std::io::BufReader;
-use std::io::Cursor;
+use std::io::{Cursor, BufReader};
 use url::Url;
 
 use crate::converter::convert_obj_to_ply;

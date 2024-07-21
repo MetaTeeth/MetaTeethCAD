@@ -16,14 +16,14 @@
 <script>
 import { listen } from "@tauri-apps/api/event";
 import bus from "vue3-eventbus";
-import ThreeScene from "../../components/ThreeScene.vue";
-import ToolDial from "../../components/ToolDial.vue";
-import StepLine from "../../components/StepLine.vue";
-import MeshPanel from "../../components/MeshPanel.vue";
-import FormStep1 from "../../components/Forms/Step1.vue";
-import FormStep2 from "../../components/Forms/Step2.vue";
-import FormStep3 from "../../components/Forms/Step3.vue";
-import FormStep4 from "../../components/Forms/Step4.vue";
+import ThreeScene from "@/components/ThreeScene.vue";
+import ToolDial from "@/components/ToolDial.vue";
+import StepLine from "@/components/StepLine.vue";
+import MeshPanel from "@/components/MeshPanel.vue";
+import FormStep1 from "@/components/Forms/Step1.vue";
+import FormStep2 from "@/components/Forms/Step2.vue";
+import FormStep3 from "@/components/Forms/Step3.vue";
+import FormStep4 from "@/components/Forms/Step4.vue";
 
 export default {
   name: "EnamelDesigner",

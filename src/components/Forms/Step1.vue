@@ -157,8 +157,8 @@ export default {
         multiple: false,
         filters: [
           {
-            name: "OBJ",
-            extensions: ["obj"],
+            name: "MESH",
+            extensions: ["obj", "stl", "ply"],
           },
         ],
       });
@@ -166,6 +166,7 @@ export default {
         this.names[pos] = getFileNameFromPath(this.files[pos]);
         this.flags_load[pos] = true;
 
+        // bus.emit("load-obj", { filepath: this.files[pos] });
         invoke("backend_load_obj", { filePath: this.files[pos] }).then(
           (OBJPack) => {
             this.objs[pos] = OBJPack.obj;

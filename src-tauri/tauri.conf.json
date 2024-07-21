@@ -47,7 +47,11 @@
       "active": false
     },
     "allowlist": {
-      "all": true
+      "all": true,
+      "protocol": {
+        "asset": true,
+        "assetScope": ["$APPDATA/assets/*"]
+      }
     },
     "windows": [
       {
@@ -59,7 +63,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
     }
   }
 }

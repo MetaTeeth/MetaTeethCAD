@@ -24,4 +24,8 @@ const vuetify = createVuetify({
     blueprint: md3,
 });
 
-createApp(App).use(router).use(vuetify).use(eventBus).mount("#app");
+createApp(App)
+  .use(router)
+  .use(vuetify)
+  .use(eventBus)
+  .mount("#app");

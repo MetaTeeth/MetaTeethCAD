@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import FDIViewer from "../FDIViewer.vue"; // 假设你已经创建了这个组件
+import FDIViewer from "@/components/FDIViewer.vue"; // 假设你已经创建了这个组件
 import { invoke } from "@tauri-apps/api/tauri";
 import bus from "vue3-eventbus";
 
