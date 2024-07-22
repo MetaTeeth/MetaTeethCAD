@@ -16,7 +16,7 @@
           <v-stepper-vertical-item :complete="step > 1" subtitle="Raw Inputs" title="原始数据输入" value="1">
             <v-text-field v-for="(hint, index) in rawInputHints" :key="index" density="compact" width="200" readonly
               prepend-inner-icon="mdi-upload" clearable @mousedown:control="clickUploadRawInput(index)" @click:clear="clickRemoveRawInput(index)"
-              v-model="rawInputs[index].name" variant="outlined" :label="hint" loading>
+              v-model="rawInputs[index].name" variant="outlined" :label="hint" loading :disabled="rawInputs[index].loading">
               <template v-slot:loader>
                 <v-progress-linear :active="rawInputs[index].loading" color="success" height="5" indeterminate />
               </template>
@@ -75,6 +75,8 @@ import { VStepperVertical, VStepperVerticalItem } from "vuetify/labs/VStepperVer
 import { open, save } from "@tauri-apps/api/dialog";
 import bus from "vue3-eventbus";
 import { getFileNameFromPath } from "@/scripts/utils";
+import { APIRegister } from "@/scripts/APIs";
+import { loadMeshUtil, exportPLY } from "@/scripts/MeshLoader";
 
 export default {
   name: "DPStepLine",
@@ -93,11 +95,7 @@ export default {
     ],
     rawInputHints: ["上颌 / Upper Jaw", "下颌 / Lower Jaw", "咬合左侧 / Bite Left", "咬合右侧 / Bite Right"],
   }),
-  mounted() {
-    bus.on("meta-teeth/mesh-register-completed", (param) => {
-      this.rawInputRegisterReady(param.sourcePath);
-    });
-  },
+  mounted() {},
   methods: {
     startDrag(e) {
       this.dragging = true;
@@ -125,20 +123,35 @@ export default {
       if (filePath != null) {
         this.rawInputs[pos].loading = true;
         this.rawInputs[pos].filePath = filePath;
-        bus.emit("meta-teeth/new-mesh-input", { filePath: filePath });
+
+        loadMeshUtil(
+          filePath,
+          object3D => {
+            const bin = exportPLY(object3D);
+            APIRegister(
+              bin,
+              resp => {
+                if (resp.status != 200) {
+                  console.error('[ERROR] <APIRegister>', resp.status);
+                  return;
+                }
+                // 注册完成 结束加载
+                const token = resp.data.token;
+                this.rawInputs[pos].token = token;
+                this.rawInputs[pos].loading = false;
+
+                bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: token });
+              },
+              err => console.error('[ERROR] <APIRegister>', err)
+            );
+          },
+          () => {}, // process callback
+          err => console.error('[ERROR] <loadMeshUtil>', err)
+        );
       }
     },
     async clickRemoveRawInput(pos) {
     },
-    rawInputRegisterReady(sourcePath) {
-      for (let ind = 0; ind < this.rawInputs.length; ++ind) {
-        if (this.rawInputs[ind].filePath === sourcePath) {
-          this.rawInputs[ind].name = getFileNameFromPath(sourcePath);
-          this.rawInputs[ind].loading = false;
-          break;
-        }
-      }
-    }
   },
 };
 </script>
