@@ -11,21 +11,22 @@
 
 <script>
 import { open } from "@tauri-apps/api/dialog";
-import { getFileNameFromPath, getHashToken } from "@/scripts/utils";
+import { getFileNameFromPath, getHashToken } from "@/scripts/Utils";
 import { APIRegister } from "@/scripts/APIs";
-import { loadMeshUtil, exportPLY } from "@/scripts/MeshLoader";
+import { loadMeshUtil, exportPLY, registrationJaw } from "@/scripts/MeshTools";
 import bus from "vue3-eventbus";
 
 export default {
   name: "DPStep1",
   data: () => ({
     rawInputs: [
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-      { name: null, filePath: null, loading: false, token: "", bin: null },
+      { name: null, loading: false, token: "", bin: null, o3d: null },
+      { name: null, loading: false, token: "", bin: null, o3d: null },
+      { name: null, loading: false, token: "", bin: null, o3d: null },
+      { name: null, loading: false, token: "", bin: null, o3d: null },
     ],
     rawInputHints: ["上颌 / Upper Jaw", "下颌 / Lower Jaw", "咬合左侧 / Bite Left", "咬合右侧 / Bite Right"],
+    plyBinCache: [null, null, null, null],
     sceneMeshes: [],
   }),
   mounted() {},
@@ -37,17 +38,17 @@ export default {
       });
       if (filePath != null) {
         this.rawInputs[pos].loading = true;
-        this.rawInputs[pos].filePath = filePath;
 
         loadMeshUtil(
           filePath,
           object3D => {
             const bin = exportPLY(object3D);
-            const local_token = getHashToken(bin);
-            bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: local_token });
+            const localToken = getHashToken(bin);
+            bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: localToken });
             this.rawInputs[pos].name = getFileNameFromPath(filePath);
+            this.rawInputs[pos].o3d = object3D;
             this.rawInputs[pos].bin = bin;
-            this.rawInputs[pos].token = local_token;
+            this.rawInputs[pos].token = localToken;
             this.rawInputs[pos].loading = false;
           },
           () => { }, // process callback
@@ -55,7 +56,7 @@ export default {
         );
       }
     },
-    async clickUploadRawInputs(next) {
+    async forward(next) {
       let readyToNext = 0;
       this.sceneMeshes = [];
       for (let pos = 0; pos < this.rawInputs.length; ++pos) {
@@ -65,6 +66,9 @@ export default {
         this.rawInputs[pos].loading = true;
         readyToNext |= 1 << pos;
 
+        // registration
+        registrationJaw(this.rawInputs[pos].o3d);
+        // 
         APIRegister(
           this.rawInputs[pos].bin,
           resp => {
@@ -77,6 +81,7 @@ export default {
               return;
             }
             this.rawInputs[pos].loading = false;
+            this.rawInputs[pos].o3d = null;
             this.rawInputs[pos].bin = null;
             this.sceneMeshes.push(this.rawInputs[pos].token);
             
@@ -90,7 +95,7 @@ export default {
       }
     },
     async clickRemoveRawInput(pos) {
-      this.rawInputs[pos] = { name: null, filePath: null, loading: false, token: "", bin: null };
+      this.rawInputs[pos] = { name: null, loading: false, token: "", bin: null, o3d: null };
     },
     canGoNext() {
       return !this.rawInputs.find(r => r.loading) && !!this.rawInputs.find((r, ind) => ind < 2 && r.token.length > 0);

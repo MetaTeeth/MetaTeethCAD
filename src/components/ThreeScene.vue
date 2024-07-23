@@ -12,7 +12,6 @@ import Stats from "stats-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import bus from "vue3-eventbus";
 import { color, instance } from "three/examples/jsm/nodes/Nodes.js";
-import { loadMeshUtil } from "@/scripts/MeshLoader.ts";
 
 export default {
   name: "ThreeScene",

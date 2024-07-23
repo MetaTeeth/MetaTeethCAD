@@ -66,10 +66,6 @@ import { VStepperVertical, VStepperVerticalItem } from "vuetify/labs/VStepperVer
 </script>
 
 <script>
-import { open } from "@tauri-apps/api/dialog";
-import { getFileNameFromPath, getHashToken } from "@/scripts/utils";
-import { APIRegister } from "@/scripts/APIs";
-import { loadMeshUtil, exportPLY } from "@/scripts/MeshLoader";
 import bus from "vue3-eventbus";
 import DPStep1 from "@/components/DatasetProducer/DPStep1.vue";
 
@@ -89,7 +85,7 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.canGoNextFuncs[0] = this.$refs.step1.canGoNext;
-      this.goNextFuncs[0] = this.$refs.step1.clickUploadRawInputs;
+      this.goNextFuncs[0] = this.$refs.step1.forward;
     })
   },
   methods: {
