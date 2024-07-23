@@ -28,7 +28,7 @@ export function loadMeshUtil(
       (object: any) => {
         let geometry = null;
         if (object instanceof Object3D) {
-          geometry = (object as Mesh).geometry;
+          geometry = (object.children[0] as Mesh).geometry;
         } else if (object instanceof BufferGeometry) {
           geometry = object;
         } else {
