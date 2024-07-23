@@ -14,20 +14,9 @@
 
         <template v-slot:default="{ step }">
           <v-stepper-vertical-item :complete="step > 1" subtitle="Raw Inputs" title="原始数据输入" value="1">
-            <v-text-field v-for="(hint, index) in rawInputHints" :key="index" density="compact" width="200" readonly
-              prepend-inner-icon="mdi-upload" clearable
-              @mousedown:control="clickAddRawInput(index)"
-              @click:clear="clickRemoveRawInput(index)"
-              v-model="rawInputs[index].name"
-              variant="outlined" :label="hint"
-              loading :disabled="rawInputs[index].loading">
-              <template v-slot:loader>
-                <v-progress-linear :active="rawInputs[index].loading" color="success" height="5" indeterminate />
-              </template>
-            </v-text-field>
+            <DPStep1 ref="step1" />
             <template v-slot:next="{ next }">
-              <v-btn color="primary" @click="clickUploadRawInputs(next)"
-                :disabled="!rawInputs.find(r => r.token.length > 0) || !!rawInputs.find(r => r.loading)">下一步</v-btn>
+              <v-btn color="primary" @click="goNextStep(step, next)" :disabled="!canGoNextFuncs[step-1]()">下一步</v-btn>
             </template>
             <template v-slot:prev></template>
           </v-stepper-vertical-item>
@@ -77,14 +66,16 @@ import { VStepperVertical, VStepperVerticalItem } from "vuetify/labs/VStepperVer
 </script>
 
 <script>
-import { open, save } from "@tauri-apps/api/dialog";
-import bus from "vue3-eventbus";
+import { open } from "@tauri-apps/api/dialog";
 import { getFileNameFromPath, getHashToken } from "@/scripts/utils";
 import { APIRegister } from "@/scripts/APIs";
 import { loadMeshUtil, exportPLY } from "@/scripts/MeshLoader";
+import bus from "vue3-eventbus";
+import DPStep1 from "@/components/DatasetProducer/DPStep1.vue";
 
 export default {
   name: "DPStepLine",
+  components: { DPStep1 },
   data: () => ({
     startX: 890,
     startY: 20,
@@ -92,15 +83,15 @@ export default {
     currentY: 20,
     dragging: false,
     finished: false,
-    rawInputs: [
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-      { name: null, filePath: null, loading: false, token: "", bin: null },
-    ],
-    rawInputHints: ["上颌 / Upper Jaw", "下颌 / Lower Jaw", "咬合左侧 / Bite Left", "咬合右侧 / Bite Right"],
+    canGoNextFuncs: [() => true, () => true, () => true],
+    goNextFuncs: [() => {}, () => {}, () => {}],
   }),
-  mounted() { },
+  mounted() {
+    this.$nextTick(() => {
+      this.canGoNextFuncs[0] = this.$refs.step1.canGoNext;
+      this.goNextFuncs[0] = this.$refs.step1.clickUploadRawInputs;
+    })
+  },
   methods: {
     startDrag(e) {
       this.dragging = true;
@@ -120,62 +111,9 @@ export default {
       this.finished = true
       alert('Finished')
     },
-    async clickAddRawInput(pos) {
-      const filePath = await open({
-        multiple: false,
-        filters: [{ name: "mesh", extensions: ["obj", "stl", "ply"] }],
-      });
-      if (filePath != null) {
-        this.rawInputs[pos].loading = true;
-        this.rawInputs[pos].filePath = filePath;
-
-        loadMeshUtil(
-          filePath,
-          object3D => {
-            const bin = exportPLY(object3D);
-            const local_token = getHashToken(bin);
-            bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: local_token });
-            this.rawInputs[pos].name = getFileNameFromPath(filePath);
-            this.rawInputs[pos].bin = bin;
-            this.rawInputs[pos].token = local_token;
-            this.rawInputs[pos].loading = false;
-          },
-          () => { }, // process callback
-          err => console.error('[ERROR] <loadMeshUtil>', err)
-        );
-      }
-    },
-    async clickUploadRawInputs(next) {
-      let readyToNext = 0;
-      for (let pos = 0; pos < this.rawInputs.length; ++pos) {
-        if (!this.rawInputs[pos].token || !this.rawInputs[pos].bin)
-          continue;
-
-        this.rawInputs[pos].loading = true;
-        readyToNext |= 1 << pos;
-        APIRegister(
-          this.rawInputs[pos].bin,
-          resp => {
-            if (resp.status !== 200) {
-              console.error('[ERROR] <APIRegister>', resp.status);
-              return;
-            }
-            if (resp.data.token !== this.rawInputs[pos].token) {
-              console.error('[ERROR] <APIRegister> token diff', resp.data.token, this.rawInputs[pos].token);
-              return;
-            }
-            this.rawInputs[pos].loading = false;
-            readyToNext &= ~(1 << pos);
-            if (readyToNext === 0) {
-              next();
-            }
-          },
-          err => console.error('[ERROR] <APIRegister>', err)
-        );
-      }
-    },
-    async clickRemoveRawInput(pos) {
-      this.rawInputs[pos] = { name: null, filePath: null, loading: false, token: "", bin: null };
+    async goNextStep(step, next) {
+      // call next when ready
+      await this.goNextFuncs[step - 1](next);
     },
   },
 };
