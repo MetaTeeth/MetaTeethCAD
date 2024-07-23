@@ -69,6 +69,9 @@ importers:
       eslint-plugin-vue:
         specifier: 9.26.0
         version: 9.26.0(eslint@9.2.0)
+      jssha:
+        specifier: ^3.3.1
+        version: 3.3.1
       postcss:
         specifier: 8.4.38
         version: 8.4.38
@@ -1478,6 +1481,9 @@ packages:
 
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
+
+  jssha@3.3.1:
+    resolution: {integrity: sha512-VCMZj12FCFMQYcFLPRm/0lOBbLi8uM2BhXPTqw3U4YAfs4AZfiApOoBLoN8cQE60Z50m1MYMTQVCfgF/KaCVhQ==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -3798,6 +3804,8 @@ snapshots:
   jsonfile@4.0.0:
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jssha@3.3.1: {}
 
   keyv@4.5.4:
     dependencies:

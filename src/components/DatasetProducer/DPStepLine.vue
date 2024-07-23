@@ -15,7 +15,7 @@
         <template v-slot:default="{ step }">
           <v-stepper-vertical-item :complete="step > 1" subtitle="Raw Inputs" title="原始数据输入" value="1">
             <v-text-field v-for="(hint, index) in rawInputHints" :key="index" density="compact" width="200" readonly
-              prepend-inner-icon="mdi-upload" clearable @mousedown:control="clickUploadRawInput(index)" @click:clear="clickRemoveRawInput(index)"
+              prepend-inner-icon="mdi-upload" clearable @mousedown:control="clickAddRawInput(index)" @click:clear="clickRemoveRawInput(index)"
               v-model="rawInputs[index].name" variant="outlined" :label="hint" loading :disabled="rawInputs[index].loading">
               <template v-slot:loader>
                 <v-progress-linear :active="rawInputs[index].loading" color="success" height="5" indeterminate />
@@ -74,7 +74,7 @@ import { VStepperVertical, VStepperVerticalItem } from "vuetify/labs/VStepperVer
 <script>
 import { open, save } from "@tauri-apps/api/dialog";
 import bus from "vue3-eventbus";
-import { getFileNameFromPath } from "@/scripts/utils";
+import { getFileNameFromPath, getHashToken } from "@/scripts/utils";
 import { APIRegister } from "@/scripts/APIs";
 import { loadMeshUtil, exportPLY } from "@/scripts/MeshLoader";
 
@@ -115,7 +115,7 @@ export default {
       this.finished = true
       alert('Finished')
     },
-    async clickUploadRawInput(pos) {
+    async clickAddRawInput(pos) {
       const filePath = await open({
         multiple: false,
         filters: [{ name: "mesh", extensions: ["obj", "stl", "ply"] }],
@@ -128,27 +128,32 @@ export default {
           filePath,
           object3D => {
             const bin = exportPLY(object3D);
-            APIRegister(
-              bin,
-              resp => {
-                if (resp.status != 200) {
-                  console.error('[ERROR] <APIRegister>', resp.status);
-                  return;
-                }
-                // 注册完成 结束加载
-                const token = resp.data.token;
-                this.rawInputs[pos].token = token;
-                this.rawInputs[pos].loading = false;
+            const local_token = getHashToken(bin);
+            bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: local_token });
+            this.rawInputs[pos].loading = false;
+            // APIRegister(
+            //   bin,
+            //   resp => {
+            //     if (resp.status != 200) {
+            //       console.error('[ERROR] <APIRegister>', resp.status);
+            //       return;
+            //     }
+            //     // 注册完成 结束加载
+            //     const token = resp.data.token;
+            //     this.rawInputs[pos].token = token;
+            //     this.rawInputs[pos].loading = false;
 
-                bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: token });
-              },
-              err => console.error('[ERROR] <APIRegister>', err)
-            );
+            //   },
+            //   err => console.error('[ERROR] <APIRegister>', err)
+            // );
           },
           () => {}, // process callback
           err => console.error('[ERROR] <loadMeshUtil>', err)
         );
       }
+    },
+    async clickUploadRawInputs() {
+      console.log('?');
     },
     async clickRemoveRawInput(pos) {
     },
