@@ -20,13 +20,12 @@ export default {
   name: "DPStep1",
   data: () => ({
     rawInputs: [
-      { name: null, loading: false, token: "", bin: null, o3d: null },
-      { name: null, loading: false, token: "", bin: null, o3d: null },
-      { name: null, loading: false, token: "", bin: null, o3d: null },
-      { name: null, loading: false, token: "", bin: null, o3d: null },
+      { name: null, loading: false, token: "", bin: null },
+      { name: null, loading: false, token: "", bin: null },
+      { name: null, loading: false, token: "", bin: null },
+      { name: null, loading: false, token: "", bin: null },
     ],
     rawInputHints: ["上颌 / Upper Jaw", "下颌 / Lower Jaw", "咬合左侧 / Bite Left", "咬合右侧 / Bite Right"],
-    plyBinCache: [null, null, null, null],
     sceneMeshes: [],
   }),
   mounted() {},
@@ -46,7 +45,6 @@ export default {
             const localToken = getHashToken(bin);
             bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: localToken });
             this.rawInputs[pos].name = getFileNameFromPath(filePath);
-            this.rawInputs[pos].o3d = object3D;
             this.rawInputs[pos].bin = bin;
             this.rawInputs[pos].token = localToken;
             this.rawInputs[pos].loading = false;
@@ -80,7 +78,6 @@ export default {
               return;
             }
             this.rawInputs[pos].loading = false;
-            this.rawInputs[pos].o3d = null;
             this.rawInputs[pos].bin = null;
             this.sceneMeshes.push(this.rawInputs[pos].token);
             
@@ -94,7 +91,7 @@ export default {
       }
     },
     async clickRemoveRawInput(pos) {
-      this.rawInputs[pos] = { name: null, loading: false, token: "", bin: null, o3d: null };
+      this.rawInputs[pos] = { name: null, loading: false, token: "", bin: null };
     },
     canGoNext() {
       return !this.rawInputs.find(r => r.loading) && !!this.rawInputs.find((r, ind) => ind < 2 && r.token.length > 0);
