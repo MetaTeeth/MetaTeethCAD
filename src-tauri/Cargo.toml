@@ -1,11 +1,11 @@
 [package]
-name = "BeauTee"
+name = "MetaTeeth"
 version = "0.0.4"
-description = "BeauTee Lab"
-authors = ["Team BeauTee"]
+description = "MetaTeeth Lab"
+authors = ["Team MetaTeeth"]
 license = "MIT"
 repository = "https://github.com/hx-w/tauri-practice"
-default-run = "BeauTee"
+default-run = "MetaTeeth"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -24,6 +24,11 @@ obj-rs = "0.7.1"
 stl_io = "0.7.0"
 url = "*"
 once_cell = "1.19.0"
+kd-tree = { version = "0.6.0", features = ["nalgebra"] }
+nalgebra = "0.32.4"
+rerun = "0.17.0"
+typenum = "1.17.0"
+log = "0.4.21"
 
 [features]
 # by default Tauri runs in production mode

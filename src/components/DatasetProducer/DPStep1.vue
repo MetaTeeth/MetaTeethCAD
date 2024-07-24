@@ -13,7 +13,7 @@
 import { open } from "@tauri-apps/api/dialog";
 import { getFileNameFromPath, getHashToken } from "@/scripts/Utils";
 import { APIRegister } from "@/scripts/APIs";
-import { loadMeshUtil, exportPLY, registrationJaw } from "@/scripts/MeshTools";
+import { loadMeshUtil, exportPLY } from "@/scripts/MeshTools";
 import bus from "vue3-eventbus";
 
 export default {
@@ -67,7 +67,6 @@ export default {
         readyToNext |= 1 << pos;
 
         // registration
-        registrationJaw(this.rawInputs[pos].o3d);
         // 
         APIRegister(
           this.rawInputs[pos].bin,

@@ -5,7 +5,7 @@
       :style="autoHeight"
     >
       <div class="align-center text-subtitle-1">
-        {{ new Date().getFullYear() }} — <strong>幻齿 CAD / BeauTee CAD</strong>
+        {{ new Date().getFullYear() }} — <strong>幻齿 CAD / MetaTeeth CAD</strong>
       </div>
     </v-footer>
   </div>

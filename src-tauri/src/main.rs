@@ -9,6 +9,7 @@ mod api_handler;
 mod converter;
 mod db;
 mod submesh;
+mod icp;
 
 #[tokio::main]
 async fn main() {
@@ -22,7 +23,7 @@ async fn main() {
             api_handler::backend_submeshes,
             api_handler::backend_getmesh
         ])
-        .menu(tauri::Menu::os_default("BeauTee").add_submenu(Submenu::new(
+        .menu(tauri::Menu::os_default("MetaTeeth").add_submenu(Submenu::new(
             "Help",
             Menu::with_items([
                 CustomMenuItem::new("Online Documentation", "Online Documentation").into(),

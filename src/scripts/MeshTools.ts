@@ -8,8 +8,6 @@ import {
   Object3D, BufferGeometry, MeshPhongMaterial,
   Color, DoubleSide, Mesh, Vector3
 } from "three"; 
-import icpts from "icpts";
-import { StandardJawPCD } from "./MeshStore";
 
 // reload
 const loaderAdapter = new Map();
@@ -78,17 +76,4 @@ export function sampleMesh(mesh: Mesh, count: number): number[] {
     vertices.push(sampledPos.x, sampledPos.y, sampledPos.z);
   }
   return vertices;
-}
-
-export function registrationJaw(mesh: Mesh) {
-  const sourcePCD = sampleMesh(mesh, StandardJawPCD.length / 3);
-
-  const options = {
-    // initialPose: IDENTITY, // [1, 0, 0, 0, 0, 1, ...]
-    tolerance: 1e-10,
-    maxIterations: 50
-  };
-  const { transform, error } = icpts.pointToPoint(sourcePCD, StandardJawPCD, options); // or icpts.pointToPlane
-
-  console.log(transform, error);
 }
