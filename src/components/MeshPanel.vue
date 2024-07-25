@@ -92,7 +92,7 @@ export default {
     },
     toggleVisibility(obj) {
       obj.visible = !obj.visible;
-      bus.emit("change-mesh-visibility", { name: obj.token, visible: obj.visible })
+      bus.emit("meta-teeth/change-mesh-visibility", { name: obj.token, visible: obj.visible })
     }
   }
 }

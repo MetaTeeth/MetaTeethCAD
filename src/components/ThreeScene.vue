@@ -204,7 +204,7 @@ export default {
     bus.on("change-vertex-color", (param) => {
       this._change_mesh_colors(param.name, param.colormap);
     });
-    bus.on("change-mesh-visibility", (param) => {
+    bus.on("meta-teeth/change-mesh-visibility", (param) => {
       this._change_mesh_visibility(param.name, param.visible);
     });
     bus.on("set-mesh-transform-helper", (param) => {

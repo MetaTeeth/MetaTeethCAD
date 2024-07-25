@@ -26,7 +26,6 @@ export default {
       { name: null, loading: false, token: "", bin: null },
     ],
     rawInputHints: ["上颌 / Upper Jaw", "下颌 / Lower Jaw", "咬合左侧 / Bite Left", "咬合右侧 / Bite Right"],
-    sceneMeshes: [],
   }),
   mounted() {},
   methods: {
@@ -56,7 +55,6 @@ export default {
     },
     async forward(next) {
       let readyToNext = 0;
-      this.sceneMeshes = [];
       for (let pos = 0; pos < this.rawInputs.length; ++pos) {
         if (!this.rawInputs[pos].token || !this.rawInputs[pos].bin)
           continue;
@@ -74,15 +72,17 @@ export default {
               return;
             }
             if (resp.data.token !== this.rawInputs[pos].token) {
+              resp.data.token = '';
               console.error('[ERROR] <APIRegister> token diff', resp.data.token, this.rawInputs[pos].token);
               return;
             }
             this.rawInputs[pos].loading = false;
             this.rawInputs[pos].bin = null;
-            this.sceneMeshes.push(this.rawInputs[pos].token);
             
             readyToNext &= ~(1 << pos);
             if (readyToNext === 0) {
+              // hide-all
+              this.setAllVisibleOrNot(false);
               next();
             }
           },
@@ -95,6 +95,13 @@ export default {
     },
     canGoNext() {
       return !this.rawInputs.find(r => r.loading) && !!this.rawInputs.find((r, ind) => ind < 2 && r.token.length > 0);
+    },
+    setAllVisibleOrNot(vis) {
+      this.rawInputs.forEach(param => {
+        if (!!param.token) {
+          bus.emit('meta-teeth/change-mesh-visibility', { name: param.token, visible: vis });
+        }
+      });
     }
   },
 };
