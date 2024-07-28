@@ -24,11 +24,9 @@ obj-rs = "0.7.1"
 stl_io = "0.7.0"
 url = "*"
 once_cell = "1.19.0"
-kd-tree = { version = "0.6.0", features = ["nalgebra"] }
-nalgebra = "0.32.4"
-rerun = "0.17.0"
-typenum = "1.17.0"
-log = "0.4.21"
+nalgebra = { version = "0.30.1", features = ["serde-serialize"] } # same as align3d
+ndarray = "0.15.6"
+align3d = "1.0.3"
 
 [features]
 # by default Tauri runs in production mode

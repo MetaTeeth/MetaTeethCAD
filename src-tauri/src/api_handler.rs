@@ -10,10 +10,12 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, BufReader};
 use url::Url;
+use nalgebra::Matrix4;
 
 use crate::converter::convert_obj_to_ply;
-use crate::db::{get_mesh, insert_mesh};
+use crate::db::{get_mesh, insert_mesh, insert_pcd};
 use crate::submesh::create_submeshes;
+use crate::icp::{registration_for_raw, load_pcd_from_ply};
 
 fn clone_obj(obj: &Obj<Position, u32>) -> Obj<Position, u32> {
     Obj {
@@ -249,5 +251,22 @@ pub async fn backend_getmesh(token: String) -> Obj<Position, u32> {
             indices: vec![0u32],
         },
         Some(mesh) => mesh,
+    }
+}
+
+#[tauri::command]
+pub fn backend_registration(verts: Vec<f32>, norms: Vec<f32>, target: String) -> Matrix4<f32> {
+    registration_for_raw(verts, norms, target)
+}
+
+#[tauri::command]
+pub fn backend_preload(handle: tauri::AppHandle) {
+    // 'STANDARD-JAW': PointCloud
+    {
+        let resource_path = handle.path_resolver()
+            .resolve_resource("resources/STANDARD_JAW.ply")
+            .expect("failed to resolve resource");
+        insert_pcd("STANDARD-JAW".to_string(), load_pcd_from_ply(resource_path.to_str().unwrap()));
+        println!("<STANDARD-JAW> preloaded");
     }
 }

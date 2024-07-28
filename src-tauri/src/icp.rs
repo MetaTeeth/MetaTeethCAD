@@ -1,190 +1,54 @@
-use kd_tree::{KdPoint, KdTree3};
-use log::debug;
-use nalgebra as na; 
-use rerun::external::glam;
+use nalgebra::{Matrix4, Vector3};
+use ndarray::prelude::*;
+use align3d::pointcloud::PointCloud;
+use align3d::icp::{ IcpParams, Icp };
+use align3d::transform::Transform;
+use align3d::io::read_ply;
+use align3d::mesh::compute_normals;
+use crate::db::get_pcd;
 
-pub type Point3 = na::Point3<f32>;
-pub type Iso = na::Isometry3<f32>;
-
-pub fn glam_vec_to_na_point(v: glam::Vec3) -> na::Point3<f32> {
-    na::Point3::new(v.x, v.y, v.z)
-}
-
-pub fn na_point_to_glam_vec(p: na::Point3<f32>) -> glam::Vec3 {
-    glam::Vec3::new(p.x, p.y, p.z)
-}
-
-pub fn na_iso3_to_rerun_tf(iso: &na::Isometry3<f32>) -> rerun::archetypes::Transform3D {
-    let t = iso.translation;
-    let r = iso.rotation.coords;
-
-    rerun::Transform3D::from_translation_rotation(
-        glam::Vec3::new(t.x, t.y, t.z),
-        rerun::Quaternion([r.x, r.y, r.z, r.w]),
-    )
-}
-
-fn center_of_mass(points: &[Point3]) -> Point3 {
-    Point3::from(
-        points
-            .iter()
-            .map(|p| p.coords)
-            .fold(na::Vector3::new(0.0, 0.0, 0.0), |a, b| a + b)
-            / points.len() as f32,
-    )
-}
-
-struct PointWithIndex {
-    point: Point3,
-    index: usize,
-}
-
-impl KdPoint for PointWithIndex {
-    type Scalar = f32;
-    type Dim = typenum::U3;
-    fn at(&self, k: usize) -> f32 {
-        self.point[k]
+fn convert_raw_to_geometry(raw_vets: Vec<f32>, raw_norms: Vec<f32>) -> PointCloud {
+    let points: Array1<Vector3<f32>> = Array1::from_shape_fn(raw_vets.len() / 3, |i| {
+        Vector3::new(raw_vets[3 * i], raw_vets[3 * i + 1], raw_vets[3 * i + 2])
+    });
+    let normals: Array1<Vector3<f32>> = Array1::from_shape_fn(raw_norms.len() / 3, |i| {
+        Vector3::new(raw_norms[3 * i], raw_norms[3 * i + 1], raw_norms[3 * i + 2])
+    });
+    PointCloud {
+        points: points,
+        normals: Some(normals),
+        colors: None
     }
 }
 
-/// Returns correspondence pairs (i, j) where i is the map index and j is the scan index.
-fn calculate_correspondences(
-    points_map: &KdTree3<PointWithIndex>,
-    points_scan: &[Point3],
-    scan_transformation: &Iso,
-) -> Vec<(usize, usize)> {
-    points_scan
-        .iter()
-        .enumerate()
-        .map(|(j, scan_point)| {
-            (
-                points_map
-                    .nearest(&scan_transformation.transform_point(scan_point))
-                    .unwrap()
-                    .item
-                    .index,
-                j,
-            )
-        })
-        .collect()
-}
-
-fn registration_error(
-    points_map: &[Point3],
-    points_scan: &[Point3],
-    scan_transformation: &Iso,
-    correspondences: &[(usize, usize)],
-) -> f32 {
-    //let correspondences = correspondences(points_kdtree, points_scan, scan_transformation);
-    let len = correspondences.len() as f32;
-
-    correspondences
-        .iter()
-        .map(|&(i, j)| {
-            (points_map[i].coords - scan_transformation.transform_point(&points_scan[j]).coords)
-                .norm()
-        })
-        .sum::<f32>()
-        / len
-}
-
-pub struct ICPParameters<'a> {
-    pub rec: Option<&'a rerun::RecordingStream>,
-    pub termination_threshold: f32,
-}
-
-impl<'a> Default for ICPParameters<'a> {
-    fn default() -> Self {
-        Self {
-            rec: None,
-            termination_threshold: 0.01,
-        }
-    }
-}
-
-/// Returns transformation which must be applied to scan to match map
-pub fn icp(
-    points_map: &[Point3],
-    points_scan: &[Point3],
-    initial_guess: na::Isometry3<f32>,
-    parameters: &ICPParameters,
-) -> na::Isometry3<f32> {
-    let mut current_best_transformation = initial_guess;
-
-    let center_of_mass_map = center_of_mass(points_map);
-    let center_of_mass_scan = center_of_mass(points_scan);
-
-    let kdtree_map = kd_tree::KdTree::build_by_ordered_float(
-        points_map
-            .iter()
-            .enumerate()
-            .map(|(i, p)| PointWithIndex {
-                point: *p,
-                index: i,
-            })
-            .collect(),
-    );
-
-    let mut correspondences =
-        calculate_correspondences(&kdtree_map, points_scan, &current_best_transformation);
-
-    loop {
-        let cross_covariance_matrix: na::Matrix3<f32> = correspondences
-            .into_iter()
-            .map(|(i, j)| {
-                (points_map[i] - center_of_mass_map.coords).coords
-                    * current_best_transformation
-                        .transform_point(&(points_scan[j] - center_of_mass_scan.coords))
-                        .coords
-                        .transpose()
-            })
-            .sum();
-
-        let svd = cross_covariance_matrix.svd(true, true);
-        let rotation = svd.u.unwrap() * svd.v_t.unwrap();
-
-        // p_transformed = R * (p - center_scan) + center_map
-        //               = R * p + (-R * center_scan + center_map)
-        //               = R * p + t_isometry
-
-        current_best_transformation *= na::Isometry3::from_parts(
-            na::Translation::from(
-                -rotation
-                    * current_best_transformation
-                        .transform_point(&center_of_mass_scan)
-                        .coords
-                    + center_of_mass_map.coords,
-            ),
-            na::UnitQuaternion::from_matrix(&rotation),
-        );
-
-        if let Some(rec) = parameters.rec {
-            rec.log(
-                "icp/scan",
-                &na_iso3_to_rerun_tf(&current_best_transformation),
-            )
-            .unwrap()
+pub fn registration_for_raw(raw_vets: Vec<f32>, raw_norms: Vec<f32>, target_token: String) -> Matrix4<f32> {
+    if let Some(target_pcd) = get_pcd(&target_token) {
+        let source_pcd = convert_raw_to_geometry(raw_vets, raw_norms);
+        let icp_params = IcpParams {
+            max_iterations: 30,
+            max_distance: 1.5,
+            max_normal_angle: 120.0_f32.to_radians(),
+            ..IcpParams::default()
         };
-
-        // Update correspondences with new transformation for error calculation and next iteration
-        correspondences =
-            calculate_correspondences(&kdtree_map, points_scan, &current_best_transformation);
-
-        let registration_error = registration_error(
-            points_map,
-            points_scan,
-            &current_best_transformation,
-            &correspondences,
-        );
-        debug!("Registration error {}", registration_error);
-        if registration_error < parameters.termination_threshold {
-            debug!(
-                "Registration error {} is less than threshold {}, stopping.",
-                registration_error, parameters.termination_threshold
-            );
-            break;
-        }
+        let icp_inst = Icp::new(icp_params, &target_pcd);
+    
+        let transform = icp_inst.align(&source_pcd);
+        return transform.0.to_matrix();
     }
+    else {
+        return Transform::eye().0.to_matrix();
+    }
+}
 
-    current_best_transformation
+pub fn load_pcd_from_ply(filepath: &str) -> PointCloud {
+    let geom = read_ply(filepath).unwrap();
+    let normals = match geom.normals {
+        Some(_normals) => _normals,
+        None => compute_normals(&geom.points.view(), &geom.faces.unwrap().view()),
+    };
+    PointCloud {
+        points: geom.points,
+        normals: Some(normals),
+        colors: None
+    }
 }

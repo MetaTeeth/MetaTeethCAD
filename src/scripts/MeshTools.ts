@@ -67,13 +67,16 @@ export function exportPLY(object3D: Object3D) {
   return data;
 }
 
-export function sampleMesh(mesh: Mesh, count: number): number[] {
-  const vertices = [];
+export function sampleMesh(mesh: Mesh, count: number): [number[], number[]] {
+  const verts = [];
+  const norms = [];
   const sampler = new MeshSurfaceSampler(mesh).build();
   const sampledPos = new Vector3();
+  const sampledNorm = new Vector3();
   for (let _ = 0; _ < count; ++_) {
-    sampler.sample(sampledPos);
-    vertices.push(sampledPos.x, sampledPos.y, sampledPos.z);
+    sampler.sample(sampledPos, sampledNorm);
+    verts.push(sampledPos.x, sampledPos.y, sampledPos.z);
+    norms.push(sampledPos.x, sampledPos.y, sampledPos.z);
   }
-  return vertices;
+  return [verts, norms];
 }

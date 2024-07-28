@@ -21,7 +21,9 @@ async fn main() {
             api_handler::backend_load_obj,
             api_handler::backend_segment_jaw,
             api_handler::backend_submeshes,
-            api_handler::backend_getmesh
+            api_handler::backend_getmesh,
+            api_handler::backend_registration,
+            api_handler::backend_preload
         ])
         .menu(tauri::Menu::os_default("MetaTeeth").add_submenu(Submenu::new(
             "Help",

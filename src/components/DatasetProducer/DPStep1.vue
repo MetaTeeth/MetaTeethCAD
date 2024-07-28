@@ -13,8 +13,10 @@
 import { open } from "@tauri-apps/api/dialog";
 import { getFileNameFromPath, getHashToken } from "@/scripts/Utils";
 import { APIRegister } from "@/scripts/APIs";
-import { loadMeshUtil, exportPLY } from "@/scripts/MeshTools";
+import { loadMeshUtil, exportPLY, sampleMesh } from "@/scripts/MeshTools";
 import bus from "vue3-eventbus";
+import { invoke } from "@tauri-apps/api";
+import { Object3D } from "three";
 
 export default {
   name: "DPStep1",
@@ -44,7 +46,7 @@ export default {
             const localToken = getHashToken(bin);
             bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: localToken });
             this.rawInputs[pos].name = getFileNameFromPath(filePath);
-            this.rawInputs[pos].bin = bin;
+            this.rawInputs[pos].bin = object3D;
             this.rawInputs[pos].token = localToken;
             this.rawInputs[pos].loading = false;
           },
@@ -63,9 +65,20 @@ export default {
         readyToNext |= 1 << pos;
 
         // registration
-        // 
+        if (pos <= 1) { // for jaws
+          const obj = this.rawInputs[pos].bin;
+          let [verts, norms] = sampleMesh(obj, 5000);
+          invoke('backend_registration', { verts: verts, norms: norms, target: 'STANDARD-JAW' })
+            .then((transform) => {
+              console.log(transform);
+              bus.emit("meta-teeth/apply-mesh-transform", { name: this.rawInputs[pos].token, transform });
+            })
+            .catch((err) => {
+              console.error('[ERROR] <backend_registration>', err);
+            });
+        }
         APIRegister(
-          this.rawInputs[pos].bin,
+          exportPLY(this.rawInputs[pos].bin),
           resp => {
             if (resp.status !== 200) {
               console.error('[ERROR] <APIRegister>', resp.status);

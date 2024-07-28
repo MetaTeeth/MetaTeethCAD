@@ -17,7 +17,12 @@
 </template>
 
 <script>
+import { invoke } from '@tauri-apps/api';
+
 export default {
+  mounted() {
+    invoke('backend_preload');
+  },
   methods: {
     btnToSpace(url) {
       this.$router.push(url);

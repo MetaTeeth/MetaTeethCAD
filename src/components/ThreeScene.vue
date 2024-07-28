@@ -175,6 +175,15 @@ export default {
       mesh.material.visible = visible;
       this.render_scene();
     },
+    _apply_mesh_transform(name, transform) {
+      let mesh = this.scene.getObjectByName(name);
+      console.log(mesh);
+      mesh.applyMatrix4(new THREE.Matrix4(transform));
+      mesh.updateMatrixWorld();
+      console.log(mesh);
+      // mesh.children[0].geometry.center();
+      this.render_scene();
+    },
     _set_transform_control(name, mode) {
       // mode in ['translate', 'rotate', 'scale']
       this.transformControls.setMode(mode);
@@ -206,6 +215,9 @@ export default {
     });
     bus.on("meta-teeth/change-mesh-visibility", (param) => {
       this._change_mesh_visibility(param.name, param.visible);
+    });
+    bus.on("meta-teeth/apply-mesh-transform", (param) => {
+      this._apply_mesh_transform(param.name, param.transform);
     });
     bus.on("set-mesh-transform-helper", (param) => {
       this._set_transform_control(param.name, param.mode);
