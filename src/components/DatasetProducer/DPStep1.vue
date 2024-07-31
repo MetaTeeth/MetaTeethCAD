@@ -17,6 +17,7 @@ import { loadMeshUtil, exportPLY, sampleMesh } from "@/scripts/MeshTools";
 import bus from "vue3-eventbus";
 import { invoke } from "@tauri-apps/api";
 import { Object3D } from "three";
+import { preloadStandard } from "@/scripts/MeshStore";
 
 export default {
   name: "DPStep1",
@@ -56,6 +57,10 @@ export default {
       }
     },
     async forward(next) {
+      preloadStandard((object3D) => {
+        bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: 'PRELOAD-STANDARD-JAW' });
+      });
+
       let readyToNext = 0;
       for (let pos = 0; pos < this.rawInputs.length; ++pos) {
         if (!this.rawInputs[pos].token || !this.rawInputs[pos].bin)
@@ -70,8 +75,7 @@ export default {
           let [verts, norms] = sampleMesh(obj, 5000);
           invoke('backend_registration', { verts: verts, norms: norms, target: 'STANDARD-JAW' })
             .then((transform) => {
-              console.log(transform);
-              bus.emit("meta-teeth/apply-mesh-transform", { name: this.rawInputs[pos].token, transform });
+              bus.emit("meta-teeth/apply-mesh-transform", { name: this.rawInputs[pos].token, transform: transform });
             })
             .catch((err) => {
               console.error('[ERROR] <backend_registration>', err);

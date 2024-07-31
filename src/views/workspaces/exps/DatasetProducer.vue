@@ -12,7 +12,6 @@ import bus from "vue3-eventbus";
 import ThreeScene from "@/components/ThreeScene.vue";
 import DPStepLine from "@/components/DatasetProducer/DPStepLine.vue";
 
-
 export default {
   name: "DatasetProducer",
   components: {

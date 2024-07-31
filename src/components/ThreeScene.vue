@@ -177,11 +177,8 @@ export default {
     },
     _apply_mesh_transform(name, transform) {
       let mesh = this.scene.getObjectByName(name);
-      console.log(mesh);
       mesh.applyMatrix4(new THREE.Matrix4(transform));
-      mesh.updateMatrixWorld();
-      console.log(mesh);
-      // mesh.children[0].geometry.center();
+      mesh.updateMatrixWorld(true);
       this.render_scene();
     },
     _set_transform_control(name, mode) {

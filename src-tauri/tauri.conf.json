@@ -52,7 +52,7 @@
       "all": true,
       "protocol": {
         "asset": true,
-        "assetScope": ["$APPDATA/assets/*"]
+        "assetScope": ["$APPDATA/assets/*", "$RESOURCE/resources/*"]
       }
     },
     "windows": [
