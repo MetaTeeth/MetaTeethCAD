@@ -13,11 +13,11 @@
 import { open } from "@tauri-apps/api/dialog";
 import { getFileNameFromPath, getHashToken } from "@/scripts/Utils";
 import { APIRegister } from "@/scripts/APIs";
-import { loadMeshUtil, exportPLY, sampleMesh } from "@/scripts/MeshTools";
+import { loadMeshUtil, exportPLY, sampleMesh, shiftCentroid } from "@/scripts/MeshTools";
 import bus from "vue3-eventbus";
 import { invoke } from "@tauri-apps/api";
 import { Object3D } from "three";
-import { preloadStandard } from "@/scripts/MeshStore";
+import { STANDARD_JAW } from "@/scripts/MeshStore";
 
 export default {
   name: "DPStep1",
@@ -57,10 +57,6 @@ export default {
       }
     },
     async forward(next) {
-      preloadStandard((object3D) => {
-        bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: 'PRELOAD-STANDARD-JAW' });
-      });
-
       let readyToNext = 0;
       for (let pos = 0; pos < this.rawInputs.length; ++pos) {
         if (!this.rawInputs[pos].token || !this.rawInputs[pos].bin)
@@ -71,40 +67,53 @@ export default {
 
         // registration
         if (pos <= 1) { // for jaws
-          const obj = this.rawInputs[pos].bin;
-          let [verts, norms] = sampleMesh(obj, 5000);
-          invoke('backend_registration', { verts: verts, norms: norms, target: 'STANDARD-JAW' })
-            .then((transform) => {
-              bus.emit("meta-teeth/apply-mesh-transform", { name: this.rawInputs[pos].token, transform: transform });
-            })
-            .catch((err) => {
-              console.error('[ERROR] <backend_registration>', err);
-            });
-        }
-        APIRegister(
-          exportPLY(this.rawInputs[pos].bin),
-          resp => {
-            if (resp.status !== 200) {
-              console.error('[ERROR] <APIRegister>', resp.status);
-              return;
+          // mask
+          const maskName = `PRELOAD-STANDARD-JAW-${pos}`;
+          bus.emit('meta-teeth/new-mesh-added', {
+            mesh: STANDARD_JAW,
+            token: maskName,
+            params: {
+              color: 'rgb(230, 100, 100)',
+              opacity: 0.7
             }
-            if (resp.data.token !== this.rawInputs[pos].token) {
-              resp.data.token = '';
-              console.error('[ERROR] <APIRegister> token diff', resp.data.token, this.rawInputs[pos].token);
-              return;
-            }
-            this.rawInputs[pos].loading = false;
-            this.rawInputs[pos].bin = null;
+          });
+
+          let obj = this.rawInputs[pos].bin;
+          obj = shiftCentroid(obj, STANDARD_JAW);
+          bus.emit('meta-teeth/set-mesh-transform-helper', { name: this.rawInputs[pos].token, mode: 'rotate' });
+          // let [verts, norms] = sampleMesh(obj, 50000);
+          // invoke('backend_registration', { verts: verts, norms: norms, target: 'STANDARD-JAW' })
+          //   .then((transform) => {
+          //     bus.emit("meta-teeth/apply-mesh-transform", { name: this.rawInputs[pos].token, transform: transform });
+          //   })
+          //   .catch((err) => {
+          //     console.error('[ERROR] <backend_registration>', err);
+          //   });
+          }
+        // APIRegister(
+        //   exportPLY(this.rawInputs[pos].bin),
+        //   resp => {
+        //     if (resp.status !== 200) {
+        //       console.error('[ERROR] <APIRegister>', resp.status);
+        //       return;
+        //     }
+        //     if (resp.data.token !== this.rawInputs[pos].token) {
+        //       resp.data.token = '';
+        //       console.error('[ERROR] <APIRegister> token diff', resp.data.token, this.rawInputs[pos].token);
+        //       return;
+        //     }
+        //     this.rawInputs[pos].loading = false;
+        //     this.rawInputs[pos].bin = null;
             
-            readyToNext &= ~(1 << pos);
-            if (readyToNext === 0) {
-              // hide-all
-              this.setAllVisibleOrNot(false);
-              next();
-            }
-          },
-          err => console.error('[ERROR] <APIRegister>', err)
-        );
+        //     readyToNext &= ~(1 << pos);
+        //     if (readyToNext === 0) {
+        //       // hide-all
+        //       this.setAllVisibleOrNot(false);
+        //       next();
+        //     }
+        //   },
+        //   err => console.error('[ERROR] <APIRegister>', err)
+        // );
       }
     },
     async clickRemoveRawInput(pos) {

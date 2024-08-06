@@ -26,7 +26,7 @@ pub fn registration_for_raw(raw_vets: Vec<f32>, raw_norms: Vec<f32>, target_toke
         let source_pcd = convert_raw_to_geometry(raw_vets, raw_norms);
         let icp_params = IcpParams {
             max_iterations: 30,
-            max_distance: 1.5,
+            max_distance: 2.0,
             max_normal_angle: 120.0_f32.to_radians(),
             ..IcpParams::default()
         };

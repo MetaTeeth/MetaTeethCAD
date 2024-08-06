@@ -139,21 +139,29 @@ export default {
 
       this.render_scene();
     },
-    add_mesh_to_scene(mesh, token) {
+    add_mesh_to_scene(mesh, token, params) {
       mesh.name = token;
+      if (params) {
+        if (params.opacity) {
+          mesh.material.transparent = true;
+          mesh.material.opacity = params.opacity;
+        }
+        if (params.color) {
+          mesh.material.color = new THREE.Color(params.color);
+        }
+      }
       this.scene.add(mesh);
       this.render_scene();
     },
     _change_mesh_colors(name, colormap) {
       let geometry = this.scene.getObjectByName(name).geometry;
-
       // 确保对象的geometry包含顶点信息
       if (geometry instanceof THREE.BufferGeometry) {
         var colorAttribute = geometry.getAttribute("color");
 
         if (
           colorAttribute !== undefined &&
-          colorAttribute.count == colormap.length
+          (colorAttribute.count === colormap.length)
         ) {
           for (var vind = 0; vind < colorAttribute.count; ++vind) {
             const _color = new THREE.Color(colormap[vind]);
@@ -177,7 +185,8 @@ export default {
     },
     _apply_mesh_transform(name, transform) {
       let mesh = this.scene.getObjectByName(name);
-      mesh.applyMatrix4(new THREE.Matrix4(transform));
+      const mat = new THREE.Matrix4(...transform);
+      mesh.applyMatrix4(mat);
       mesh.updateMatrixWorld(true);
       this.render_scene();
     },
@@ -202,7 +211,7 @@ export default {
     this.render_scene();
 
     bus.on('meta-teeth/new-mesh-added', (param) => {
-      this.add_mesh_to_scene(param.mesh, param.token);
+      this.add_mesh_to_scene(param.mesh, param.token, param.params);
     });
     bus.on("add-obj-to-scene", (param) => {
       this._load_OBJ(param.obj, param.token);
@@ -216,10 +225,10 @@ export default {
     bus.on("meta-teeth/apply-mesh-transform", (param) => {
       this._apply_mesh_transform(param.name, param.transform);
     });
-    bus.on("set-mesh-transform-helper", (param) => {
+    bus.on("meta-teeth/set-mesh-transform-helper", (param) => {
       this._set_transform_control(param.name, param.mode);
     });
-    bus.on("detach-mesh-transform-helper", (param) => {
+    bus.on("meta-teeth/detach-mesh-transform-helper", (param) => {
       this._detach_transform_control();
     });
   },

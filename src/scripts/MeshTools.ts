@@ -80,3 +80,23 @@ export function sampleMesh(mesh: Mesh, count: number): [number[], number[]] {
   }
   return [verts, norms];
 }
+
+export function shiftCentroid(source: Mesh, target: Mesh): Mesh {
+  source.geometry.computeBoundingBox();
+  target.geometry.computeBoundingBox();
+
+  let srcCenter = new Vector3();
+  let tgtCenter = new Vector3();
+
+  source.geometry.boundingBox.getCenter(srcCenter);
+  source.localToWorld(srcCenter);
+  target.geometry.boundingBox.getCenter(tgtCenter);
+  target.localToWorld(tgtCenter);
+
+  const trans = new Vector3();
+  trans.subVectors(tgtCenter, srcCenter);
+
+  source.translateX(trans.x).translateY(trans.y).translateZ(trans.z);
+
+  return source;
+}
