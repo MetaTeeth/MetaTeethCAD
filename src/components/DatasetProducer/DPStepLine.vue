@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-auto floating-card" max-width="300" :style="{ left: currentX + 'px', top: currentY + 'px' }">
+  <v-card class="mx-auto floating-card" max-width="320" :style="{ left: currentX + 'px', top: currentY + 'px' }">
     <template v-slot:title>
       <span class="font-weight-black" @mousedown="startDrag" @mousemove="drag" @mouseup="endDrag"
         @mouseleave="endDrag">步骤</span>

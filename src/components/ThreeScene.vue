@@ -184,9 +184,15 @@ export default {
       this.render_scene();
     },
     _apply_mesh_transform(name, transform) {
-      let mesh = this.scene.getObjectByName(name);
+      const mesh = this.scene.getObjectByName(name);
       const mat = new THREE.Matrix4(...transform);
       mesh.applyMatrix4(mat);
+      mesh.updateMatrixWorld(true);
+      this.render_scene();
+    },
+    _apply_mesh_translate(name, trans) {
+      const mesh = this.scene.getObjectByName(name);
+      mesh.translateX(trans.x).translateY(trans.y).translateZ(trans.z);
       mesh.updateMatrixWorld(true);
       this.render_scene();
     },
@@ -224,6 +230,9 @@ export default {
     });
     bus.on("meta-teeth/apply-mesh-transform", (param) => {
       this._apply_mesh_transform(param.name, param.transform);
+    });
+    bus.on("meta-teeth/apply-mesh-translate", (param) => {
+      this._apply_mesh_translate(param.name, param.translate);
     });
     bus.on("meta-teeth/set-mesh-transform-helper", (param) => {
       this._set_transform_control(param.name, param.mode);
