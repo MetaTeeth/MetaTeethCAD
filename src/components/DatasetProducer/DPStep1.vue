@@ -1,12 +1,12 @@
 <template>
   <div v-for="(hint, index) in rawInputHints" :key="index">
-    <v-row v-if="currentActivePos >= 0 && index < 2" align="start" justify="center" dense no-gutters
+    <v-row v-if="currentActivePos >= 0 && index < 2 && !!rawInputs[index].name" align="start" justify="center" dense no-gutters
       style="height: 55px;">
       <v-col cols="10">
         <v-text-field density="compact" width="180" readonly
           prepend-inner-icon="mdi-upload"
           @mousedown:control="clickAddRawInput(index)" @click:clear="clickRemoveRawInput(index)"
-          v-model="rawInputs[index].name" variant="outlined" :label="hint" loading :disabled="rawInputs[index].loading">
+          v-model="rawInputs[index].name" variant="outlined" :label="hint" loading :disabled="rawInputs[index].loading || currentActivePos >= 0">
           <template v-slot:loader>
             <v-progress-linear :active="rawInputs[index].loading" color="success" height="5" indeterminate />
           </template>
@@ -27,7 +27,7 @@
         <v-text-field density="compact" width="220" readonly prepend-inner-icon="mdi-upload"
           :clearable="currentActivePos >= 0"
           @mousedown:control="clickAddRawInput(index)" @click:clear="clickRemoveRawInput(index)"
-          v-model="rawInputs[index].name" variant="outlined" :label="hint" loading :disabled="rawInputs[index].loading">
+          v-model="rawInputs[index].name" variant="outlined" :label="hint" loading :disabled="rawInputs[index].loading || currentActivePos >= 0">
           <template v-slot:loader>
             <v-progress-linear :active="rawInputs[index].loading" color="success" height="5" indeterminate />
           </template>
@@ -75,7 +75,7 @@ export default {
           object3D => {
             const bin = exportPLY(object3D);
             const localToken = getHashToken(bin);
-            bus.emit('meta-teeth/new-mesh-added', { mesh: object3D, token: localToken });
+            bus.emit('meta-teeth/mesh-added', { mesh: object3D, token: localToken });
             this.rawInputs[pos].name = getFileNameFromPath(filePath);
             this.rawInputs[pos].bin = object3D;
             this.rawInputs[pos].token = localToken;
@@ -87,7 +87,7 @@ export default {
       }
     },
     async forward(next) {
-      bus.emit('meta-teeth/new-mesh-added', {
+      bus.emit('meta-teeth/mesh-added', {
         mesh: STANDARD_JAW,
         token: 'STANDARD-JAW',
         params: {
@@ -96,6 +96,7 @@ export default {
         }
       });
 
+      this.setAllVisibleOrNot(false);
       this.nextFunc = next;
       this.goNextActive();
 
@@ -111,7 +112,7 @@ export default {
       //   if (pos <= 1) { // for jaws
       //     // mask
       //     const maskName = `PRELOAD-STANDARD-JAW-${pos}`;
-      //     bus.emit('meta-teeth/new-mesh-added', {
+      //     bus.emit('meta-teeth/mesh-added', {
       //       mesh: STANDARD_JAW,
       //       token: maskName,
       //       params: {
@@ -177,13 +178,14 @@ export default {
     goNextActive() {
       // after press 'next' button or locked
       if (this.currentActivePos >= 0) {
+        bus.emit('meta-teeth/change-mesh-visibility', { name: this.rawInputs[this.currentActivePos].token, visible: false });
         // upload
         this.rawInputs[this.currentActivePos].locked = true;
         this.uploadMesh(this.currentActivePos);
       }
       // go next
       this.currentActivePos += 1;
-      while (!this.rawInputs[this.currentActivePos].name) {
+      while (this.currentActivePos < 4 && !this.rawInputs[this.currentActivePos].name) {
         this.currentActivePos += 1;
       }
       if (this.currentActivePos > 1) { // all handled
@@ -192,14 +194,16 @@ export default {
           this.uploadMesh(this.currentActivePos);
           this.currentActivePos += 1;
         }
+        bus.emit('meta-teeth/detach-mesh-transform-helper', {});
+        bus.emit('meta-teeth/change-mesh-visibility', { name: 'STANDARD-JAW', visible: false });
         this.currentActivePos = -1;
         this.nextFunc();
       }
       else {
         // set transform handle
+        bus.emit('meta-teeth/change-mesh-visibility', { name: this.rawInputs[this.currentActivePos].token, visible: true });
         const translate = shiftCentroid(this.rawInputs[this.currentActivePos].bin, STANDARD_JAW);
         bus.emit('meta-teeth/apply-mesh-translate', { name: this.rawInputs[this.currentActivePos].token, translate: translate });
-
         bus.emit('meta-teeth/set-mesh-transform-helper', { name: this.rawInputs[this.currentActivePos].token, mode: 'rotate' });
       }
     },

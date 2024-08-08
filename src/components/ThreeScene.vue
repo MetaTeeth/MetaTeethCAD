@@ -207,6 +207,11 @@ export default {
     _detach_transform_control() {
       this.transformControls.detach();
       this.render_scene();
+    },
+    remove_mesh_from_scene(name) {
+      const mesh = this.scene.getObjectByName(name);
+      this.scene.remove(mesh);
+      this.render_scene();
     }
   },
   //生命周期 - 创建完成（可以访问当前this实例）
@@ -216,8 +221,11 @@ export default {
     this.init();
     this.render_scene();
 
-    bus.on('meta-teeth/new-mesh-added', (param) => {
+    bus.on('meta-teeth/mesh-added', (param) => {
       this.add_mesh_to_scene(param.mesh, param.token, param.params);
+    });
+    bus.on('meta-teeth/mesh-removed', (param) => {
+      this.remove_mesh_from_scene(param.name);
     });
     bus.on("add-obj-to-scene", (param) => {
       this._load_OBJ(param.obj, param.token);
